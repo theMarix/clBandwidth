@@ -20,6 +20,7 @@
 
 import pyopencl as cl
 import numpy as np
+import argparse
 
 MAX_MEM_SIZE = 10 * 1024 * 1024 # 10 MiB
 LOCAL_THREADS = 128
@@ -27,8 +28,17 @@ GLOBAL_THREADS = 20 * 8 * LOCAL_THREADS
 
 class Runner:
 
-	def __init__(self):
-		self.ctx = cl.create_some_context()
+	def __init__(self, device = None):
+		if device:
+			platforms = cl.get_platforms()
+			if len(platforms) > 1:
+				raise Exception('Found more then one platform, giving up.')
+			platform = platforms[0]
+			properties = [(cl.context_properties.PLATFORM, platform)]
+			devices = [platform.get_devices()[device]]
+			self.ctx = cl.Context(devices, properties)
+		else:
+			self.ctx = cl.create_some_context()
 		self.queue = cl.CommandQueue(self.ctx, properties=cl.command_queue_properties.PROFILING_ENABLE)
 
 		self.device = self.queue.device
@@ -85,7 +95,15 @@ class Runner:
 
 
 if __name__ == '__main__':
-	runner = Runner()
+	parser = argparse.ArgumentParser(description='Benchmark global memory bandwidth')
+	parser.add_argument('-d', '--device', dest='device', type=int, metavar='I', help='The device to use for the measurement')
+
+	args = parser.parse_args()
+
+	if args.device:
+		runner = Runner(args.device)
+	else:
+		runner = Runner()
 
 	print '#Kernel Bytes nanos (rel err) GB/s'
 	print 'copyFloat ',
