@@ -43,35 +43,51 @@ class Runner:
 		self.in_buf = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY, MAX_MEM_SIZE)
 		self.out_buf = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, MAX_MEM_SIZE)
 
-	def benchmark(self, kernelname):
-		if kernelname == 'copyFloat':
-			kernel = self.prg.copyFloat;
-			elems = MAX_MEM_SIZE / 4
-			event = kernel(self.queue, (GLOBAL_THREADS,), (LOCAL_THREADS,), self.out_buf, self.in_buf, np.uint64(elems))
-			bytes_transferred = elems * 4 * 2
-		elif kernelname == 'readFloat':
-			kernel = self.prg.readFloat;
-			elems = MAX_MEM_SIZE / 4
-			event = kernel(self.queue, (GLOBAL_THREADS,), (LOCAL_THREADS,), self.out_buf, self.in_buf, np.uint64(elems))
-			bytes_transferred = (elems + GLOBAL_THREADS) * 4
-		elif kernelname == 'writeFloat':
-			kernel = self.prg.writeFloat;
-			elems = MAX_MEM_SIZE / 4
-			event = kernel(self.queue, (GLOBAL_THREADS,), (LOCAL_THREADS,), self.out_buf, np.float32(1.), np.uint64(elems))
-			bytes_transferred = elems * 4
-		else:
-			print "Don't know how to run {0}".format(kernelname)
-			return None
+	def benchmark(self, kernelname, mem_size = MAX_MEM_SIZE, global_threads = GLOBAL_THREADS, local_threads = LOCAL_THREADS):
+		BENCH_RUNS = 10
+		WARMUP_RUNS = 2
 
-		event.wait()
-		elapsed = (event.profile.end - event.profile.start);
-		print '{0} {1} {2}'.format(bytes_transferred, elapsed, bytes_transferred / float(elapsed))
+		events = []
+		for i in range(BENCH_RUNS + WARMUP_RUNS):
+
+			# Kernel launching logic
+			# This was supposed to be in an own function, but when you return the events
+			# you cannot call the function more than once for some unkown reason
+			if kernelname == 'copyFloat':
+				kernel = self.prg.copyFloat;
+				elems = mem_size / 4
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 4 * 2
+			elif kernelname == 'readFloat':
+				kernel = self.prg.readFloat;
+				elems = mem_size / 4
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 4
+			elif kernelname == 'writeFloat':
+				kernel = self.prg.writeFloat;
+				elems = mem_size / 4
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 4
+			else:
+				raise NameError( "Don't know how to run {0}".format(kernelname) )
+
+			events.append(event)
+
+		cl.wait_for_events(events)
+
+		# throw away warmup runs
+		events = events[WARMUP_RUNS:]
+		event_times = map(lambda event: (event.profile.end - event.profile.start), events)
+		elapsed = np.mean(event_times)
+		elapsed_std = np.std(event_times)
+
+		print '{0} {1:.0f} ({2:.1f}%) {3:.3f}'.format(bytes_transferred, elapsed, elapsed_std / elapsed * 100, bytes_transferred / elapsed)
 
 
 if __name__ == '__main__':
 	runner = Runner()
 
-	print '#Kernel Bytes nanos GB/s'
+	print '#Kernel Bytes nanos (rel err) GB/s'
 	print 'copyFloat ',
 	runner.benchmark('copyFloat')
 	print 'readFloat ',
