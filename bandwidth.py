@@ -78,6 +78,36 @@ class Runner:
 				elems = mem_size / 4
 				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
 				bytes_transferred = elems * 4
+			elif kernelname == 'copyFloatRestricted':
+				kernel = self.prg.copyFloatRestricted;
+				elems = mem_size / 4
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 4 * 2
+			elif kernelname == 'readFloatRestricted':
+				kernel = self.prg.readFloatRestricted;
+				elems = mem_size / 4
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 4
+			elif kernelname == 'writeFloatRestricted':
+				kernel = self.prg.writeFloatRestricted;
+				elems = mem_size / 4
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 4
+			elif kernelname == 'copyFloat4':
+				kernel = self.prg.copyFloat4;
+				elems = mem_size / 16
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 16 * 2
+			elif kernelname == 'readFloat4':
+				kernel = self.prg.readFloat4;
+				elems = mem_size / 16
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 16
+			elif kernelname == 'writeFloat4':
+				kernel = self.prg.writeFloat4;
+				elems = mem_size / 16
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 16
 			else:
 				raise NameError( "Don't know how to run {0}".format(kernelname) )
 
@@ -112,4 +142,16 @@ if __name__ == '__main__':
 	runner.benchmark('readFloat')
 	print 'writeFloat ',
 	runner.benchmark('writeFloat')
+	print 'copyFloatRestricted ',
+	runner.benchmark('copyFloatRestricted')
+	print 'readFloatRestricted ',
+	runner.benchmark('readFloatRestricted')
+	print 'writeFloatRestricted ',
+	runner.benchmark('writeFloatRestricted')
+	print 'copyFloat4 ',
+	runner.benchmark('copyFloat4')
+	print 'readFloat4 ',
+	runner.benchmark('readFloat4')
+	print 'writeFloat4 ',
+	runner.benchmark('writeFloat4')
 

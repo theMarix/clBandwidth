@@ -37,3 +37,45 @@ __kernel void writeFloat(__global float * out, const float in, const ulong elems
 		out[i] = in;
 	}
 }
+
+__kernel void copyFloatRestricted(__global float * const restrict out, __global const float * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readFloatRestricted(__global float * const restrict out, __global const float * const restrict in, const ulong elems)
+{
+	float tmp = 0.0f;
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp += in[i];
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeFloatRestricted(__global float * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in;
+	}
+}
+
+__kernel void copyFloat4(__global float4 * out, __global float4 * in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readFloat4(__global float4 * out, __global float4 * in, const ulong elems)
+{
+	float4 tmp = 0.0f;
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp += in[i];
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeFloat4(__global float4 * out, const float4 in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in;
+	}
+}
