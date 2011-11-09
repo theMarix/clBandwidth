@@ -28,8 +28,8 @@ GLOBAL_THREADS = 20 * 8 * LOCAL_THREADS
 
 class Runner:
 
-	def __init__(self, device = None):
-		if device:
+	def __init__(self, device = None, local_threads = LOCAL_THREADS, global_threads = GLOBAL_THREADS):
+		if device != None:
 			platforms = cl.get_platforms()
 			if len(platforms) > 1:
 				raise Exception('Found more then one platform, giving up.')
@@ -53,9 +53,17 @@ class Runner:
 		self.in_buf = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY, MAX_MEM_SIZE)
 		self.out_buf = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, MAX_MEM_SIZE)
 
-	def benchmark(self, kernelname, mem_size = MAX_MEM_SIZE, global_threads = GLOBAL_THREADS, local_threads = LOCAL_THREADS):
+		self.local_threads = local_threads
+		self.global_threads = global_threads
+
+	def benchmark(self, kernelname, mem_size = MAX_MEM_SIZE, global_threads = None, local_threads = None):
 		BENCH_RUNS = 10
 		WARMUP_RUNS = 2
+
+		if not global_threads:
+			global_threads = self.global_threads
+		if not local_threads:
+			local_threads = self.local_threads
 
 		events = []
 		for i in range(BENCH_RUNS + WARMUP_RUNS):
@@ -130,7 +138,7 @@ if __name__ == '__main__':
 
 	args = parser.parse_args()
 
-	if args.device:
+	if args.device != None:
 		runner = Runner(args.device)
 	else:
 		runner = Runner()
