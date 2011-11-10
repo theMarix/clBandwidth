@@ -20,7 +20,7 @@
 
 import pyopencl as cl
 import numpy as np
-import argparse
+import optparse
 
 MAX_MEM_SIZE = 10 * 1024 * 1024 # 10 MiB
 LOCAL_THREADS = 128
@@ -133,10 +133,10 @@ class Runner:
 
 
 if __name__ == '__main__':
-	parser = argparse.ArgumentParser(description='Benchmark global memory bandwidth')
-	parser.add_argument('-d', '--device', dest='device', type=int, metavar='I', help='The device to use for the measurement')
+	parser = optparse.OptionParser(description='Benchmark global memory bandwidth')
+	parser.add_option('-d', '--device', dest='device', type=int, metavar='I', help='The device to use for the measurement')
 
-	args = parser.parse_args()
+	(args, rem) = parser.parse_args()
 
 	if args.device != None:
 		runner = Runner(args.device)
