@@ -105,6 +105,21 @@ class Runner:
 				elems = mem_size / 4
 				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
 				bytes_transferred = elems * 4
+			elif kernelname == 'copyFloat2':
+				kernel = self.prg.copyFloat2;
+				elems = mem_size / 8
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 8 * 2
+			elif kernelname == 'readFloat2':
+				kernel = self.prg.readFloat2;
+				elems = mem_size / 8
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 8
+			elif kernelname == 'writeFloat2':
+				kernel = self.prg.writeFloat2;
+				elems = mem_size / 8
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 8
 			elif kernelname == 'copyFloat4':
 				kernel = self.prg.copyFloat4;
 				elems = mem_size / 16
@@ -120,6 +135,37 @@ class Runner:
 				elems = mem_size / 16
 				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
 				bytes_transferred = elems * 16
+
+			elif kernelname == 'copySpComplex':
+				kernel = self.prg.copySpComplex;
+				elems = mem_size / 8
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 8 * 2
+			elif kernelname == 'readSpComplex':
+				kernel = self.prg.readSpComplex;
+				elems = mem_size / 8
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 8
+			elif kernelname == 'writeSpComplex':
+				kernel = self.prg.writeSpComplex;
+				elems = mem_size / 8
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 8
+			elif kernelname == 'copySpComplexRestricted':
+				kernel = self.prg.copySpComplexRestricted;
+				elems = mem_size / 8
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 8 * 2
+			elif kernelname == 'readSpComplexRestricted':
+				kernel = self.prg.readSpComplexRestricted;
+				elems = mem_size / 8
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 8
+			elif kernelname == 'writeSpComplexRestricted':
+				kernel = self.prg.writeSpComplexRestricted;
+				elems = mem_size / 8
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 8
 
 			elif kernelname == 'copyDouble':
 				kernel = self.prg.copyDouble;
@@ -182,6 +228,37 @@ class Runner:
 				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float64(1.), np.uint64(elems))
 				bytes_transferred = elems * 32
 
+			elif kernelname == 'copyDpComplex':
+				kernel = self.prg.copyDpComplex;
+				elems = mem_size / 16
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 16 * 2
+			elif kernelname == 'readDpComplex':
+				kernel = self.prg.readDpComplex;
+				elems = mem_size / 16
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 16
+			elif kernelname == 'writeDpComplex':
+				kernel = self.prg.writeDpComplex;
+				elems = mem_size / 16
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float64(1.), np.uint64(elems))
+				bytes_transferred = elems * 16
+			elif kernelname == 'copyDpComplexRestricted':
+				kernel = self.prg.copyDpComplexRestricted;
+				elems = mem_size / 16
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 16 * 2
+			elif kernelname == 'readDpComplexRestricted':
+				kernel = self.prg.readDpComplexRestricted;
+				elems = mem_size / 16
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 16
+			elif kernelname == 'writeDpComplexRestricted':
+				kernel = self.prg.writeDpComplexRestricted;
+				elems = mem_size / 16
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float64(1.), np.uint64(elems))
+				bytes_transferred = elems * 16
+
 			else:
 				raise NameError( "Don't know how to run {0}".format(kernelname) )
 
@@ -222,12 +299,33 @@ if __name__ == '__main__':
 	runner.benchmark('readFloatRestricted')
 	print 'writeFloatRestricted ',
 	runner.benchmark('writeFloatRestricted')
+	print 'copyFloat2 ',
+	runner.benchmark('copyFloat2')
+	print 'readFloat2 ',
+	runner.benchmark('readFloat2')
+	print 'writeFloat2 ',
+	runner.benchmark('writeFloat2')
 	print 'copyFloat4 ',
 	runner.benchmark('copyFloat4')
 	print 'readFloat4 ',
 	runner.benchmark('readFloat4')
 	print 'writeFloat4 ',
 	runner.benchmark('writeFloat4')
+
+	print # SP complex Kernels
+
+	print 'copySpComplex ',
+	runner.benchmark('copySpComplex')
+	print 'readSpComplex ',
+	runner.benchmark('readSpComplex')
+	print 'writeSpComplex ',
+	runner.benchmark('writeSpComplex')
+	print 'copySpComplexRestricted ',
+	runner.benchmark('copySpComplexRestricted')
+	print 'readSpComplexRestricted ',
+	runner.benchmark('readSpComplexRestricted')
+	print 'writeSpComplexRestricted ',
+	runner.benchmark('writeSpComplexRestricted')
 
 	if runner.hasDoublePrecisionSupport():
 		print # double kernels
@@ -256,3 +354,18 @@ if __name__ == '__main__':
 		runner.benchmark('readDouble4')
 		print 'writeDouble4 ',
 		runner.benchmark('writeDouble4')
+
+		print # double precision complex
+
+		print 'copyDpComplex ',
+		runner.benchmark('copyDpComplex')
+		print 'readDpComplex ',
+		runner.benchmark('readDpComplex')
+		print 'writeDpComplex ',
+		runner.benchmark('writeDpComplex')
+		print 'copyDpComplexRestricted ',
+		runner.benchmark('copyDpComplexRestricted')
+		print 'readDpComplexRestricted ',
+		runner.benchmark('readDpComplexRestricted')
+		print 'writeDpComplexRestricted ',
+		runner.benchmark('writeDpComplexRestricted')

@@ -73,6 +73,27 @@ __kernel void writeFloatRestricted(__global float * const restrict out, const fl
 	}
 }
 
+__kernel void copyFloat2(__global float2 * out, __global float2 * in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readFloat2(__global float2 * out, __global float2 * in, const ulong elems)
+{
+	float2 tmp = 0.0f;
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp += in[i];
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeFloat2(__global float2 * out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in;
+	}
+}
+
 __kernel void copyFloat4(__global float4 * out, __global float4 * in, const ulong elems)
 {
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
@@ -94,6 +115,61 @@ __kernel void writeFloat4(__global float4 * out, const float in, const ulong ele
 	}
 }
 
+/*
+ * Single precision complex
+ */
+
+typedef struct { float re; float im; } spComplex;
+
+spComplex make_spComplex(const float re, const float im) {
+	return (spComplex) {re, im};
+}
+
+spComplex spComplexAdd(const spComplex left, const spComplex right) {
+	return make_spComplex(left.re + right.re, left.im + right.im);
+}
+
+__kernel void copySpComplex(__global spComplex * out, __global spComplex * in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readSpComplex(__global spComplex * out, __global spComplex * in, const ulong elems)
+{
+	spComplex tmp = make_spComplex(0.0f, 0.0f);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = spComplexAdd(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeSpComplex(__global spComplex * out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = make_spComplex(in, in);
+	}
+}
+
+__kernel void copySpComplexRestricted(__global spComplex * const restrict out, __global const spComplex * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readSpComplexRestricted(__global spComplex * const restrict out, __global const spComplex * const restrict in, const ulong elems)
+{
+	spComplex tmp = make_spComplex(0.0f, 0.0f);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = spComplexAdd(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeSpComplexRestricted(__global spComplex * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = make_spComplex(in, in);
+	}
+}
 
 /*
  * double kernels
@@ -182,6 +258,62 @@ __kernel void writeDouble4(__global double4 * out, const double in, const ulong 
 {
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
 		out[i] = in;
+	}
+}
+
+/*
+ * Double precision complex
+ */
+
+typedef struct { double re; double im; } dpComplex;
+
+dpComplex make_dpComplex(const double re, const double im) {
+	return (dpComplex) {re, im};
+}
+
+dpComplex dpComplexAdd(const dpComplex left, const dpComplex right) {
+	return make_dpComplex(left.re + right.re, left.im + right.im);
+}
+
+__kernel void copyDpComplex(__global dpComplex * out, __global dpComplex * in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readDpComplex(__global dpComplex * out, __global dpComplex * in, const ulong elems)
+{
+	dpComplex tmp = make_dpComplex(0.0f, 0.0f);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = dpComplexAdd(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeDpComplex(__global dpComplex * out, const double in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = make_dpComplex(in, in);
+	}
+}
+
+__kernel void copyDpComplexRestricted(__global dpComplex * const restrict out, __global const dpComplex * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readDpComplexRestricted(__global dpComplex * const restrict out, __global const dpComplex * const restrict in, const ulong elems)
+{
+	dpComplex tmp = make_dpComplex(0.0f, 0.0f);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = dpComplexAdd(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeDpComplexRestricted(__global dpComplex * const restrict out, const double in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = make_dpComplex(in, in);
 	}
 }
 
