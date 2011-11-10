@@ -229,29 +229,30 @@ if __name__ == '__main__':
 	print 'writeFloat4 ',
 	runner.benchmark('writeFloat4')
 
-	print # double kernels
+	if runner.hasDoublePrecisionSupport():
+		print # double kernels
 
-	print 'copyDouble ',
-	runner.benchmark('copyDouble')
-	print 'readDouble ',
-	runner.benchmark('readDouble')
-	print 'writeDouble ',
-	runner.benchmark('writeDouble')
-	print 'copyDoubleRestricted ',
-	runner.benchmark('copyDoubleRestricted')
-	print 'readDoubleRestricted ',
-	runner.benchmark('readDoubleRestricted')
-	print 'writeDoubleRestricted ',
-	runner.benchmark('writeDoubleRestricted')
-	print 'copyDouble2 ',
-	runner.benchmark('copyDouble2')
-	print 'readDouble2 ',
-	runner.benchmark('readDouble2')
-	print 'writeDouble2 ',
-	runner.benchmark('writeDouble2')
-	print 'copyDouble4 ',
-	runner.benchmark('copyDouble4')
-	print 'readDouble4 ',
-	runner.benchmark('readDouble4')
-	print 'writeDouble4 ',
-	runner.benchmark('writeDouble4')
+		print 'copyDouble ',
+		runner.benchmark('copyDouble')
+		print 'readDouble ',
+		runner.benchmark('readDouble')
+		print 'writeDouble ',
+		runner.benchmark('writeDouble')
+		print 'copyDoubleRestricted ',
+		runner.benchmark('copyDoubleRestricted')
+		print 'readDoubleRestricted ',
+		runner.benchmark('readDoubleRestricted')
+		print 'writeDoubleRestricted ',
+		runner.benchmark('writeDoubleRestricted')
+		print 'copyDouble2 ',
+		runner.benchmark('copyDouble2')
+		print 'readDouble2 ',
+		runner.benchmark('readDouble2')
+		print 'writeDouble2 ',
+		runner.benchmark('writeDouble2')
+		print 'copyDouble4 ',
+		runner.benchmark('copyDouble4')
+		print 'readDouble4 ',
+		runner.benchmark('readDouble4')
+		print 'writeDouble4 ',
+		runner.benchmark('writeDouble4')
