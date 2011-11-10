@@ -73,7 +73,7 @@ __kernel void readFloat4(__global float4 * out, __global float4 * in, const ulon
 	}
 	out[get_global_id(0)] = tmp;
 }
-__kernel void writeFloat4(__global float4 * out, const float4 in, const ulong elems)
+__kernel void writeFloat4(__global float4 * out, const float in, const ulong elems)
 {
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
 		out[i] = in;
