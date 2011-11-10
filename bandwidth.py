@@ -120,6 +120,68 @@ class Runner:
 				elems = mem_size / 16
 				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
 				bytes_transferred = elems * 16
+
+			elif kernelname == 'copyDouble':
+				kernel = self.prg.copyDouble;
+				elems = mem_size / 8
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 8 * 2
+			elif kernelname == 'readDouble':
+				kernel = self.prg.readDouble;
+				elems = mem_size / 8
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 8
+			elif kernelname == 'writeDouble':
+				kernel = self.prg.writeDouble;
+				elems = mem_size / 8
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float64(1.), np.uint64(elems))
+				bytes_transferred = elems * 8
+			elif kernelname == 'copyDoubleRestricted':
+				kernel = self.prg.copyDoubleRestricted;
+				elems = mem_size / 8
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 8 * 2
+			elif kernelname == 'readDoubleRestricted':
+				kernel = self.prg.readDoubleRestricted;
+				elems = mem_size / 8
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 8
+			elif kernelname == 'writeDoubleRestricted':
+				kernel = self.prg.writeDoubleRestricted;
+				elems = mem_size / 8
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float64(1.), np.uint64(elems))
+				bytes_transferred = elems * 8
+			elif kernelname == 'copyDouble2':
+				kernel = self.prg.copyDouble2;
+				elems = mem_size / 16
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 16 * 2
+			elif kernelname == 'readDouble2':
+				kernel = self.prg.readDouble2;
+				elems = mem_size / 16
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 16
+			elif kernelname == 'writeDouble2':
+				kernel = self.prg.writeDouble2;
+				elems = mem_size / 16
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float64(1.), np.uint64(elems))
+				bytes_transferred = elems * 16
+			elif kernelname == 'copyDouble4':
+				kernel = self.prg.copyDouble4;
+				elems = mem_size / 32
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 32 * 2
+			elif kernelname == 'readDouble4':
+				kernel = self.prg.readDouble4;
+				elems = mem_size / 32
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 32
+			elif kernelname == 'writeDouble4':
+				kernel = self.prg.writeDouble4;
+				elems = mem_size / 32
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float64(1.), np.uint64(elems))
+				bytes_transferred = elems * 32
+
 			else:
 				raise NameError( "Don't know how to run {0}".format(kernelname) )
 
@@ -167,3 +229,29 @@ if __name__ == '__main__':
 	print 'writeFloat4 ',
 	runner.benchmark('writeFloat4')
 
+	print # double kernels
+
+	print 'copyDouble ',
+	runner.benchmark('copyDouble')
+	print 'readDouble ',
+	runner.benchmark('readDouble')
+	print 'writeDouble ',
+	runner.benchmark('writeDouble')
+	print 'copyDoubleRestricted ',
+	runner.benchmark('copyDoubleRestricted')
+	print 'readDoubleRestricted ',
+	runner.benchmark('readDoubleRestricted')
+	print 'writeDoubleRestricted ',
+	runner.benchmark('writeDoubleRestricted')
+	print 'copyDouble2 ',
+	runner.benchmark('copyDouble2')
+	print 'readDouble2 ',
+	runner.benchmark('readDouble2')
+	print 'writeDouble2 ',
+	runner.benchmark('writeDouble2')
+	print 'copyDouble4 ',
+	runner.benchmark('copyDouble4')
+	print 'readDouble4 ',
+	runner.benchmark('readDouble4')
+	print 'writeDouble4 ',
+	runner.benchmark('writeDouble4')

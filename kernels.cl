@@ -27,6 +27,10 @@
 #endif /* cl_amd_fp64 */
 #endif /* cl_khr_fp64 */
 
+/*
+ * float kernels
+ */
+
 __kernel void copyFloat(__global float * out, __global float * in, const ulong elems)
 {
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
@@ -89,3 +93,96 @@ __kernel void writeFloat4(__global float4 * out, const float in, const ulong ele
 		out[i] = in;
 	}
 }
+
+
+/*
+ * double kernels
+ */
+
+#ifdef DOUBLE_ENABLED
+
+__kernel void copyDouble(__global double * out, __global double * in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readDouble(__global double * out, __global double * in, const ulong elems)
+{
+	double tmp = 0.0f;
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp += in[i];
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeDouble(__global double * out, const double in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in;
+	}
+}
+
+__kernel void copyDoubleRestricted(__global double * const restrict out, __global const double * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readDoubleRestricted(__global double * const restrict out, __global const double * const restrict in, const ulong elems)
+{
+	double tmp = 0.0f;
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp += in[i];
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeDoubleRestricted(__global double * const restrict out, const double in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in;
+	}
+}
+
+__kernel void copyDouble2(__global double2 * out, __global double2 * in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readDouble2(__global double2 * out, __global double2 * in, const ulong elems)
+{
+	double2 tmp = 0.0f;
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp += in[i];
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeDouble2(__global double2 * out, const double in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in;
+	}
+}
+
+__kernel void copyDouble4(__global double4 * out, __global double4 * in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readDouble4(__global double4 * out, __global double4 * in, const ulong elems)
+{
+	double4 tmp = 0.0f;
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp += in[i];
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeDouble4(__global double4 * out, const double in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in;
+	}
+}
+
+#endif /* DOUBLE_ENABLED */
