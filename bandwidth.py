@@ -56,6 +56,10 @@ class Runner:
 		self.local_threads = local_threads
 		self.global_threads = global_threads
 
+	def hasDoublePrecisionSupport(self):
+		extensions = self.device.extensions
+		return 'cl_khr_fp64' in extensions or 'cl_amd_fp64' in extensions
+
 	def benchmark(self, kernelname, mem_size = MAX_MEM_SIZE, global_threads = None, local_threads = None):
 		BENCH_RUNS = 10
 		WARMUP_RUNS = 2

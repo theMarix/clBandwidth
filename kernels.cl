@@ -17,6 +17,16 @@
  * (c) 2011 Matthias Bach <bach@compeng.uni-frankfurt.de>
  */
 
+#ifdef cl_khr_fp64
+#pragma OPENCL EXTENSION cl_khr_fp64 : enable
+#define DOUBLE_ENABLED
+#else /* cl_khr_fp64 */
+#ifdef cl_amd_fp64
+#pragma OPENCL EXTENSION cl_amd_fp64 : enable
+#define DOUBLE_ENABLED
+#endif /* cl_amd_fp64 */
+#endif /* cl_khr_fp64 */
+
 __kernel void copyFloat(__global float * out, __global float * in, const ulong elems)
 {
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
