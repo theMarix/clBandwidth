@@ -167,6 +167,37 @@ class Runner:
 				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
 				bytes_transferred = elems * 8
 
+			elif kernelname == 'copyAlignedSpComplex':
+				kernel = self.prg.copyAlignedSpComplex;
+				elems = mem_size / 8
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 8 * 2
+			elif kernelname == 'readAlignedSpComplex':
+				kernel = self.prg.readAlignedSpComplex;
+				elems = mem_size / 8
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 8
+			elif kernelname == 'writeAlignedSpComplex':
+				kernel = self.prg.writeAlignedSpComplex;
+				elems = mem_size / 8
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 8
+			elif kernelname == 'copyAlignedSpComplexRestricted':
+				kernel = self.prg.copyAlignedSpComplexRestricted;
+				elems = mem_size / 8
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 8 * 2
+			elif kernelname == 'readAlignedSpComplexRestricted':
+				kernel = self.prg.readAlignedSpComplexRestricted;
+				elems = mem_size / 8
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 8
+			elif kernelname == 'writeAlignedSpComplexRestricted':
+				kernel = self.prg.writeAlignedSpComplexRestricted;
+				elems = mem_size / 8
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 8
+
 			elif kernelname == 'copyDouble':
 				kernel = self.prg.copyDouble;
 				elems = mem_size / 8
@@ -258,6 +289,36 @@ class Runner:
 				elems = mem_size / 16
 				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float64(1.), np.uint64(elems))
 				bytes_transferred = elems * 16
+			elif kernelname == 'copyAlignedDpComplex':
+				kernel = self.prg.copyAlignedDpComplex;
+				elems = mem_size / 16
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 16 * 2
+			elif kernelname == 'readAlignedDpComplex':
+				kernel = self.prg.readAlignedDpComplex;
+				elems = mem_size / 16
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 16
+			elif kernelname == 'writeAlignedDpComplex':
+				kernel = self.prg.writeAlignedDpComplex;
+				elems = mem_size / 16
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float64(1.), np.uint64(elems))
+				bytes_transferred = elems * 16
+			elif kernelname == 'copyAlignedDpComplexRestricted':
+				kernel = self.prg.copyAlignedDpComplexRestricted;
+				elems = mem_size / 16
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 16 * 2
+			elif kernelname == 'readAlignedDpComplexRestricted':
+				kernel = self.prg.readAlignedDpComplexRestricted;
+				elems = mem_size / 16
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 16
+			elif kernelname == 'writeAlignedDpComplexRestricted':
+				kernel = self.prg.writeAlignedDpComplexRestricted;
+				elems = mem_size / 16
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float64(1.), np.uint64(elems))
+				bytes_transferred = elems * 16
 
 			else:
 				raise NameError( "Don't know how to run {0}".format(kernelname) )
@@ -326,6 +387,18 @@ if __name__ == '__main__':
 	runner.benchmark('readSpComplexRestricted')
 	print 'writeSpComplexRestricted ',
 	runner.benchmark('writeSpComplexRestricted')
+	print 'copyAlignedSpComplex ',
+	runner.benchmark('copyAlignedSpComplex')
+	print 'readAlignedSpComplex ',
+	runner.benchmark('readAlignedSpComplex')
+	print 'writeAlignedSpComplex ',
+	runner.benchmark('writeAlignedSpComplex')
+	print 'copyAlignedSpComplexRestricted ',
+	runner.benchmark('copyAlignedSpComplexRestricted')
+	print 'readAlignedSpComplexRestricted ',
+	runner.benchmark('readAlignedSpComplexRestricted')
+	print 'writeAlignedSpComplexRestricted ',
+	runner.benchmark('writeAlignedSpComplexRestricted')
 
 	if runner.hasDoublePrecisionSupport():
 		print # double kernels
@@ -369,3 +442,15 @@ if __name__ == '__main__':
 		runner.benchmark('readDpComplexRestricted')
 		print 'writeDpComplexRestricted ',
 		runner.benchmark('writeDpComplexRestricted')
+		print 'copyAlignedDpComplex ',
+		runner.benchmark('copyAlignedDpComplex')
+		print 'readAlignedDpComplex ',
+		runner.benchmark('readAlignedDpComplex')
+		print 'writeAlignedDpComplex ',
+		runner.benchmark('writeAlignedDpComplex')
+		print 'copyAlignedDpComplexRestricted ',
+		runner.benchmark('copyAlignedDpComplexRestricted')
+		print 'readAlignedDpComplexRestricted ',
+		runner.benchmark('readAlignedDpComplexRestricted')
+		print 'writeAlignedDpComplexRestricted ',
+		runner.benchmark('writeAlignedDpComplexRestricted')

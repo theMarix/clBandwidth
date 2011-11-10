@@ -171,6 +171,58 @@ __kernel void writeSpComplexRestricted(__global spComplex * const restrict out, 
 	}
 }
 
+typedef struct { float re; float im; } __attribute__ ((aligned (8))) alignedAlignedSpComplex;
+
+alignedAlignedSpComplex make_alignedAlignedSpComplex(const float re, const float im) {
+	return (alignedAlignedSpComplex) {re, im};
+}
+
+alignedAlignedSpComplex alignedAlignedSpComplexAdd(const alignedAlignedSpComplex left, const alignedAlignedSpComplex right) {
+	return make_alignedAlignedSpComplex(left.re + right.re, left.im + right.im);
+}
+
+__kernel void copyAlignedSpComplex(__global alignedAlignedSpComplex * out, __global alignedAlignedSpComplex * in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readAlignedSpComplex(__global alignedAlignedSpComplex * out, __global alignedAlignedSpComplex * in, const ulong elems)
+{
+	alignedAlignedSpComplex tmp = make_alignedAlignedSpComplex(0.0f, 0.0f);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = alignedAlignedSpComplexAdd(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeAlignedSpComplex(__global alignedAlignedSpComplex * out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = make_alignedAlignedSpComplex(in, in);
+	}
+}
+
+__kernel void copyAlignedSpComplexRestricted(__global alignedAlignedSpComplex * const restrict out, __global const alignedAlignedSpComplex * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readAlignedSpComplexRestricted(__global alignedAlignedSpComplex * const restrict out, __global const alignedAlignedSpComplex * const restrict in, const ulong elems)
+{
+	alignedAlignedSpComplex tmp = make_alignedAlignedSpComplex(0.0f, 0.0f);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = alignedAlignedSpComplexAdd(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeAlignedSpComplexRestricted(__global alignedAlignedSpComplex * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = make_alignedAlignedSpComplex(in, in);
+	}
+}
+
 /*
  * double kernels
  */
@@ -314,6 +366,58 @@ __kernel void writeDpComplexRestricted(__global dpComplex * const restrict out, 
 {
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
 		out[i] = make_dpComplex(in, in);
+	}
+}
+
+typedef struct { double re; double im; } __attribute__((aligned (16))) alignedDpComplex;
+
+alignedDpComplex make_alignedDpComplex(const double re, const double im) {
+	return (alignedDpComplex) {re, im};
+}
+
+alignedDpComplex alignedDpComplexAdd(const alignedDpComplex left, const alignedDpComplex right) {
+	return make_alignedDpComplex(left.re + right.re, left.im + right.im);
+}
+
+__kernel void copyAlignedDpComplex(__global alignedDpComplex * out, __global alignedDpComplex * in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readAlignedDpComplex(__global alignedDpComplex * out, __global alignedDpComplex * in, const ulong elems)
+{
+	alignedDpComplex tmp = make_alignedDpComplex(0.0f, 0.0f);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = alignedDpComplexAdd(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeAlignedDpComplex(__global alignedDpComplex * out, const double in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = make_alignedDpComplex(in, in);
+	}
+}
+
+__kernel void copyAlignedDpComplexRestricted(__global alignedDpComplex * const restrict out, __global const alignedDpComplex * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readAlignedDpComplexRestricted(__global alignedDpComplex * const restrict out, __global const alignedDpComplex * const restrict in, const ulong elems)
+{
+	alignedDpComplex tmp = make_alignedDpComplex(0.0f, 0.0f);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = alignedDpComplexAdd(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeAlignedDpComplexRestricted(__global alignedDpComplex * const restrict out, const double in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = make_alignedDpComplex(in, in);
 	}
 }
 
