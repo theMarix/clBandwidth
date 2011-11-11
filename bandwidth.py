@@ -21,10 +21,14 @@
 import pyopencl as cl
 import numpy as np
 import optparse
+from collections import namedtuple
 
 MAX_MEM_SIZE = 10 * 1024 * 1024 # 10 MiB
 LOCAL_THREADS = 128
 GLOBAL_THREADS = 20 * 8 * LOCAL_THREADS
+
+# Result of kernel invocation for a given set of parameters. time is in nanos, bandwidth in GB/s
+DataPoint = namedtuple('DataPoint', 'kernel global_threads local_threads bytes_transferred time time_std bandwidth')
 
 class Runner:
 
@@ -668,7 +672,7 @@ class Runner:
 		elapsed = np.mean(event_times)
 		elapsed_std = np.std(event_times)
 
-		print '{0} {1:.0f} ({2:.1f}%) {3:.3f}'.format(bytes_transferred, elapsed, elapsed_std / elapsed * 100, bytes_transferred / elapsed)
+		return DataPoint(kernelname, global_threads, local_threads, bytes_transferred, elapsed, elapsed_std, bytes_transferred / elapsed)
 
 
 if __name__ == '__main__':
@@ -682,7 +686,16 @@ if __name__ == '__main__':
 	else:
 		runner = Runner()
 
+	datapoints = []
+
 	print '#Kernel Bytes nanos (rel err) GB/s'
 	for kernel in runner.get_kernel_names():
-		print '{0} '.format(kernel),
-		runner.benchmark(kernel)
+		try:
+			datapoints.append(runner.benchmark(kernel))
+		except cl.RuntimeError as ex:
+			# On Apples OpenCL retrieving the profiling information sometimes seems to fail for no good reason
+			print 'Error benchmarking {0}: {1}'.format(kernel, ex)
+
+
+	for datapoint in datapoints:
+		print '{0.kernel} {0.bytes_transferred} {0.time:.0f} ({1:.1%}) {0.bandwidth}'.format(datapoint, datapoint.time_std / datapoint.time)
