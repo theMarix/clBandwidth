@@ -198,6 +198,114 @@ class Runner:
 				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
 				bytes_transferred = elems * 8
 
+			elif kernelname == 'copySpSu3vec':
+				kernel = self.prg.copySpSu3vec;
+				elems = mem_size / 24
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 24 * 2
+			elif kernelname == 'readSpSu3vec':
+				kernel = self.prg.readSpSu3vec;
+				elems = mem_size / 24
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 24
+			elif kernelname == 'writeSpSu3vec':
+				kernel = self.prg.writeSpSu3vec;
+				elems = mem_size / 24
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 24
+			elif kernelname == 'copySpSu3vecRestricted':
+				kernel = self.prg.copySpSu3vecRestricted;
+				elems = mem_size / 24
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 24 * 2
+			elif kernelname == 'readSpSu3vecRestricted':
+				kernel = self.prg.readSpSu3vecRestricted;
+				elems = mem_size / 24
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 24
+			elif kernelname == 'writeSpSu3vecRestricted':
+				kernel = self.prg.writeSpSu3vecRestricted;
+				elems = mem_size / 24
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 24
+
+			elif kernelname == 'copySpSu3vecFromAlignedRestricted':
+				kernel = self.prg.copySpSu3vecFromAlignedRestricted;
+				elems = mem_size / 24
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 24 * 2
+			elif kernelname == 'readSpSu3vecFromAlignedRestricted':
+				kernel = self.prg.readSpSu3vecFromAlignedRestricted;
+				elems = mem_size / 24
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 24
+			elif kernelname == 'writeSpSu3vecFromAlignedRestricted':
+				kernel = self.prg.writeSpSu3vecFromAlignedRestricted;
+				elems = mem_size / 24
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 24
+
+			elif kernelname == 'copyAlignedSpSu3vecRestricted':
+				kernel = self.prg.copyAlignedSpSu3vecRestricted;
+				elems = mem_size / 32
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 24 * 2
+			elif kernelname == 'readAlignedSpSu3vecRestricted':
+				kernel = self.prg.readAlignedSpSu3vecRestricted;
+				elems = mem_size / 32
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 24
+			elif kernelname == 'writeAlignedSpSu3vecRestricted':
+				kernel = self.prg.writeAlignedSpSu3vecRestricted;
+				elems = mem_size / 32
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 24
+			elif kernelname == 'copyAligned8SpSu3vecRestricted':
+				kernel = self.prg.copyAligned8SpSu3vecRestricted;
+				elems = mem_size / 24
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 24 * 2
+			elif kernelname == 'readAligned8SpSu3vecRestricted':
+				kernel = self.prg.readAligned8SpSu3vecRestricted;
+				elems = mem_size / 24
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 24
+			elif kernelname == 'writeAligned8SpSu3vecRestricted':
+				kernel = self.prg.writeAligned8SpSu3vecRestricted;
+				elems = mem_size / 24
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 24
+			elif kernelname == 'copyAligned16SpSu3vecRestricted':
+				kernel = self.prg.copyAligned16SpSu3vecRestricted;
+				elems = mem_size / 32
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 24 * 2
+			elif kernelname == 'readAligned16SpSu3vecRestricted':
+				kernel = self.prg.readAligned16SpSu3vecRestricted;
+				elems = mem_size / 32
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 24
+			elif kernelname == 'writeAligned16SpSu3vecRestricted':
+				kernel = self.prg.writeAligned16SpSu3vecRestricted;
+				elems = mem_size / 32
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 24
+			elif kernelname == 'copyAligned32SpSu3vecRestricted':
+				kernel = self.prg.copyAligned32SpSu3vecRestricted;
+				elems = mem_size / 32
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 24 * 2
+			elif kernelname == 'readAligned32SpSu3vecRestricted':
+				kernel = self.prg.readAligned32SpSu3vecRestricted;
+				elems = mem_size / 32
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 24
+			elif kernelname == 'writeAligned32SpSu3vecRestricted':
+				kernel = self.prg.writeAligned32SpSu3vecRestricted;
+				elems = mem_size / 32
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 24
+
 			elif kernelname == 'copyDouble':
 				kernel = self.prg.copyDouble;
 				elems = mem_size / 8
@@ -399,6 +507,51 @@ if __name__ == '__main__':
 	runner.benchmark('readAlignedSpComplexRestricted')
 	print 'writeAlignedSpComplexRestricted ',
 	runner.benchmark('writeAlignedSpComplexRestricted')
+
+	print # SP SU3 vectors
+
+	print 'copySpSu3vec ',
+	runner.benchmark('copySpSu3vec')
+	print 'readSpSu3vec ',
+	runner.benchmark('readSpSu3vec')
+	print 'writeSpSu3vec ',
+	runner.benchmark('writeSpSu3vec')
+	print 'copySpSu3vecRestricted ',
+	runner.benchmark('copySpSu3vecRestricted')
+	print 'readSpSu3vecRestricted ',
+	runner.benchmark('readSpSu3vecRestricted')
+	print 'writeSpSu3vecRestricted ',
+	runner.benchmark('writeSpSu3vecRestricted')
+	print 'copyAlignedSpSu3vecRestricted ',
+	runner.benchmark('copyAlignedSpSu3vecRestricted')
+	print 'readAlignedSpSu3vecRestricted ',
+	runner.benchmark('readAlignedSpSu3vecRestricted')
+	print 'writeAlignedSpSu3vecRestricted ',
+	runner.benchmark('writeAlignedSpSu3vecRestricted')
+	print 'copyAligned8SpSu3vecRestricted ',
+	runner.benchmark('copyAligned8SpSu3vecRestricted')
+	print 'readAligned8SpSu3vecRestricted ',
+	runner.benchmark('readAligned8SpSu3vecRestricted')
+	print 'writeAligned8SpSu3vecRestricted ',
+	runner.benchmark('writeAligned8SpSu3vecRestricted')
+	print 'copyAligned16SpSu3vecRestricted ',
+	runner.benchmark('copyAligned16SpSu3vecRestricted')
+	print 'readAligned16SpSu3vecRestricted ',
+	runner.benchmark('readAligned16SpSu3vecRestricted')
+	print 'writeAligned16SpSu3vecRestricted ',
+	runner.benchmark('writeAligned16SpSu3vecRestricted')
+	print 'copyAligned32SpSu3vecRestricted ',
+	runner.benchmark('copyAligned32SpSu3vecRestricted')
+	print 'readAligned32SpSu3vecRestricted ',
+	runner.benchmark('readAligned32SpSu3vecRestricted')
+	print 'writeAligned32SpSu3vecRestricted ',
+	runner.benchmark('writeAligned32SpSu3vecRestricted')
+	print 'copySpSu3vecFromAlignedRestricted ',
+	runner.benchmark('copySpSu3vecFromAlignedRestricted')
+	print 'readSpSu3vecFromAlignedRestricted ',
+	runner.benchmark('readSpSu3vecFromAlignedRestricted')
+	print 'writeSpSu3vecFromAlignedRestricted ',
+	runner.benchmark('writeSpSu3vecFromAlignedRestricted')
 
 	if runner.hasDoublePrecisionSupport():
 		print # double kernels
