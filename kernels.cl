@@ -496,6 +496,279 @@ __kernel void writeSpSu3vecFromAlignedRestricted(__global spSu3vecFromAligned * 
 	}
 }
 
+/*
+ * Single precisoin SU3
+ */
+
+typedef struct {
+	spComplex e00, e01, e02;
+	spComplex e10, e11, e12;
+	spComplex e20, e21, e22;
+} spSu3;
+
+spSu3 make_spSu3(const spComplex e00, const spComplex e01, const spComplex e02,
+                 const spComplex e10, const spComplex e11, const spComplex e12,
+                 const spComplex e20, const spComplex e21, const spComplex e22) {
+	return (spSu3) {e00, e01, e02,
+	                e10, e11, e12,
+	                e20, e21, e22};
+}
+
+spSu3 spSu3Add(const spSu3 left, const spSu3 right) {
+	return make_spSu3(
+		spComplexAdd(left.e00, right.e00),
+		spComplexAdd(left.e01, right.e01),
+		spComplexAdd(left.e02, right.e02),
+		spComplexAdd(left.e10, right.e10),
+		spComplexAdd(left.e11, right.e11),
+		spComplexAdd(left.e12, right.e12),
+		spComplexAdd(left.e20, right.e20),
+		spComplexAdd(left.e21, right.e21),
+		spComplexAdd(left.e22, right.e22)
+	);
+}
+
+__kernel void copySpSu3(__global spSu3 * out, __global spSu3 * in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readSpSu3(__global spSu3 * out, __global spSu3 * in, const ulong elems)
+{
+	spComplex bla = make_spComplex(0.0f, 0.0f);
+	spSu3 tmp = make_spSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = spSu3Add(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeSpSu3(__global spSu3 * out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		spComplex bla = make_spComplex(in, in);
+		out[i] = make_spSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+	}
+}
+
+__kernel void copySpSu3Restricted(__global spSu3 * const restrict out, __global const spSu3 * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readSpSu3Restricted(__global spSu3 * const restrict out, __global const spSu3 * const restrict in, const ulong elems)
+{
+	spComplex bla = make_spComplex(0.0f, 0.0f);
+	spSu3 tmp = make_spSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = spSu3Add(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeSpSu3Restricted(__global spSu3 * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		spComplex bla = make_spComplex(in, in);
+		out[i] = make_spSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+	}
+}
+
+spSu3 getSpSu3SOA(__global const spComplex * const restrict in, const size_t i)
+{
+	const size_t stride = get_global_size(0);
+	return make_spSu3(in[0 * stride + i], in[1 * stride + i], in[2 * stride + i],
+	                  in[3 * stride + i], in[4 * stride + i], in[5 * stride + i],
+	                  in[6 * stride + i], in[7 * stride + i], in[8 * stride + i]);
+}
+
+void putSpSu3SOA(__global spComplex * const restrict out, const size_t i, const spSu3 val)
+{
+	const size_t stride = get_global_size(0);
+	out[0 * stride + i] = val.e00;
+	out[1 * stride + i] = val.e01;
+	out[2 * stride + i] = val.e02;
+	out[3 * stride + i] = val.e10;
+	out[4 * stride + i] = val.e11;
+	out[5 * stride + i] = val.e12;
+	out[6 * stride + i] = val.e20;
+	out[7 * stride + i] = val.e21;
+	out[8 * stride + i] = val.e22;
+}
+
+__kernel void copySpSu3SOARestricted(__global spComplex * const restrict out, __global const spComplex * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		spSu3 tmp = getSpSu3SOA(in, i);
+		putSpSu3SOA(out, i, tmp);
+	}
+}
+__kernel void readSpSu3SOARestricted(__global spComplex * const restrict out, __global const spComplex * const restrict in, const ulong elems)
+{
+	spComplex bla = make_spComplex(0.0f, 0.0f);
+	spSu3 tmp = make_spSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = spSu3Add(tmp, getSpSu3SOA(in, i));
+	}
+	putSpSu3SOA(out, get_global_id(0), tmp);
+}
+__kernel void writeSpSu3SOARestricted(__global spComplex * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		spComplex bla = make_spComplex(in, in);
+		spSu3 tmp = make_spSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+		putSpSu3SOA(out, i, tmp);
+	}
+}
+
+typedef struct {
+	alignedSpComplex e00, e01, e02;
+	alignedSpComplex e10, e11, e12;
+	alignedSpComplex e20, e21, e22;
+} spSu3FromAligned;
+
+spSu3FromAligned make_spSu3FromAligned(const alignedSpComplex e00, const alignedSpComplex e01, const alignedSpComplex e02,
+                                       const alignedSpComplex e10, const alignedSpComplex e11, const alignedSpComplex e12,
+                                       const alignedSpComplex e20, const alignedSpComplex e21, const alignedSpComplex e22) {
+	return (spSu3FromAligned) {e00, e01, e02,
+	                e10, e11, e12,
+	                e20, e21, e22};
+}
+
+spSu3FromAligned spSu3FromAlignedAdd(const spSu3FromAligned left, const spSu3FromAligned right) {
+	return make_spSu3FromAligned(
+		alignedSpComplexAdd(left.e00, right.e00),
+		alignedSpComplexAdd(left.e01, right.e01),
+		alignedSpComplexAdd(left.e02, right.e02),
+		alignedSpComplexAdd(left.e10, right.e10),
+		alignedSpComplexAdd(left.e11, right.e11),
+		alignedSpComplexAdd(left.e12, right.e12),
+		alignedSpComplexAdd(left.e20, right.e20),
+		alignedSpComplexAdd(left.e21, right.e21),
+		alignedSpComplexAdd(left.e22, right.e22)
+	);
+}
+
+__kernel void copySpSu3FromAlignedRestricted(__global spSu3FromAligned * const restrict out, __global const spSu3FromAligned * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readSpSu3FromAlignedRestricted(__global spSu3FromAligned * const restrict out, __global const spSu3FromAligned * const restrict in, const ulong elems)
+{
+	alignedSpComplex bla = make_alignedSpComplex(0.0f, 0.0f);
+	spSu3FromAligned tmp = make_spSu3FromAligned(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = spSu3FromAlignedAdd(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeSpSu3FromAlignedRestricted(__global spSu3FromAligned * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		alignedSpComplex bla = make_alignedSpComplex(in, in);
+		out[i] = make_spSu3FromAligned(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+	}
+}
+
+spSu3FromAligned getSpSu3FromAlignedSOA(__global const alignedSpComplex * const restrict in, const size_t i)
+{
+	const size_t stride = get_global_size(0);
+	return make_spSu3FromAligned(in[0 * stride + i], in[1 * stride + i], in[2 * stride + i],
+	                  in[3 * stride + i], in[4 * stride + i], in[5 * stride + i],
+	                  in[6 * stride + i], in[7 * stride + i], in[8 * stride + i]);
+}
+
+void putSpSu3FromAlignedSOA(__global alignedSpComplex * const restrict out, const size_t i, const spSu3FromAligned val)
+{
+	const size_t stride = get_global_size(0);
+	out[0 * stride + i] = val.e00;
+	out[1 * stride + i] = val.e01;
+	out[2 * stride + i] = val.e02;
+	out[3 * stride + i] = val.e10;
+	out[4 * stride + i] = val.e11;
+	out[5 * stride + i] = val.e12;
+	out[6 * stride + i] = val.e20;
+	out[7 * stride + i] = val.e21;
+	out[8 * stride + i] = val.e22;
+}
+
+__kernel void copySpSu3FromAlignedSOARestricted(__global alignedSpComplex * const restrict out, __global const alignedSpComplex * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		spSu3FromAligned tmp = getSpSu3FromAlignedSOA(in, i);
+		putSpSu3FromAlignedSOA(out, i, tmp);
+	}
+}
+__kernel void readSpSu3FromAlignedSOARestricted(__global alignedSpComplex * const restrict out, __global const alignedSpComplex * const restrict in, const ulong elems)
+{
+	alignedSpComplex bla = make_alignedSpComplex(0.0f, 0.0f);
+	spSu3FromAligned tmp = make_spSu3FromAligned(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = spSu3FromAlignedAdd(tmp, getSpSu3FromAlignedSOA(in, i));
+	}
+	putSpSu3FromAlignedSOA(out, get_global_id(0), tmp);
+}
+__kernel void writeSpSu3FromAlignedSOARestricted(__global alignedSpComplex * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		alignedSpComplex bla = make_alignedSpComplex(in, in);
+		spSu3FromAligned tmp = make_spSu3FromAligned(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+		putSpSu3FromAlignedSOA(out, i, tmp);
+	}
+}
+
+typedef struct {
+	spComplex e00, e01, e02;
+	spComplex e10, e11, e12;
+	spComplex e20, e21, e22;
+} __attribute__((aligned(8))) alignedSpSu3;
+
+alignedSpSu3 make_alignedSpSu3(const spComplex e00, const spComplex e01, const spComplex e02,
+                               const spComplex e10, const spComplex e11, const spComplex e12,
+                               const spComplex e20, const spComplex e21, const spComplex e22) {
+	return (alignedSpSu3) {e00, e01, e02,
+	                e10, e11, e12,
+	                e20, e21, e22};
+}
+
+alignedSpSu3 alignedSpSu3Add(const alignedSpSu3 left, const alignedSpSu3 right) {
+	return make_alignedSpSu3(
+		spComplexAdd(left.e00, right.e00),
+		spComplexAdd(left.e01, right.e01),
+		spComplexAdd(left.e02, right.e02),
+		spComplexAdd(left.e10, right.e10),
+		spComplexAdd(left.e11, right.e11),
+		spComplexAdd(left.e12, right.e12),
+		spComplexAdd(left.e20, right.e20),
+		spComplexAdd(left.e21, right.e21),
+		spComplexAdd(left.e22, right.e22)
+	);
+}
+
+__kernel void copyAligned8SpSu3Restricted(__global alignedSpSu3 * const restrict out, __global const alignedSpSu3 * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readAligned8SpSu3Restricted(__global alignedSpSu3 * const restrict out, __global const alignedSpSu3 * const restrict in, const ulong elems)
+{
+	spComplex bla = make_spComplex(0.0f, 0.0f);
+	alignedSpSu3 tmp = make_alignedSpSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = alignedSpSu3Add(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeAligned8SpSu3Restricted(__global alignedSpSu3 * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		spComplex bla = make_spComplex(in, in);
+		out[i] = make_alignedSpSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+	}
+}
 
 /*
  * double kernels

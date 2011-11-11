@@ -306,6 +306,98 @@ class Runner:
 				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
 				bytes_transferred = elems * 24
 
+			elif kernelname == 'copySpSu3':
+				kernel = self.prg.copySpSu3;
+				elems = mem_size / 72
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 72 * 2
+			elif kernelname == 'readSpSu3':
+				kernel = self.prg.readSpSu3;
+				elems = mem_size / 72
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 72
+			elif kernelname == 'writeSpSu3':
+				kernel = self.prg.writeSpSu3;
+				elems = mem_size / 72
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 72
+			elif kernelname == 'copySpSu3Restricted':
+				kernel = self.prg.copySpSu3Restricted;
+				elems = mem_size / 72
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 72 * 2
+			elif kernelname == 'readSpSu3Restricted':
+				kernel = self.prg.readSpSu3Restricted;
+				elems = mem_size / 72
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 72
+			elif kernelname == 'writeSpSu3Restricted':
+				kernel = self.prg.writeSpSu3Restricted;
+				elems = mem_size / 72
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 72
+			elif kernelname == 'copySpSu3SOARestricted':
+				kernel = self.prg.copySpSu3SOARestricted;
+				elems = mem_size / 72
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 72 * 2
+			elif kernelname == 'readSpSu3SOARestricted':
+				kernel = self.prg.readSpSu3SOARestricted;
+				elems = mem_size / 72
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 72
+			elif kernelname == 'writeSpSu3SOARestricted':
+				kernel = self.prg.writeSpSu3SOARestricted;
+				elems = mem_size / 72
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 72
+
+			elif kernelname == 'copySpSu3FromAlignedRestricted':
+				kernel = self.prg.copySpSu3FromAlignedRestricted;
+				elems = mem_size / 72
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 72 * 2
+			elif kernelname == 'readSpSu3FromAlignedRestricted':
+				kernel = self.prg.readSpSu3FromAlignedRestricted;
+				elems = mem_size / 72
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 72
+			elif kernelname == 'writeSpSu3FromAlignedRestricted':
+				kernel = self.prg.writeSpSu3FromAlignedRestricted;
+				elems = mem_size / 72
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 72
+			elif kernelname == 'copySpSu3FromAlignedSOARestricted':
+				kernel = self.prg.copySpSu3FromAlignedSOARestricted;
+				elems = mem_size / 72
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 72 * 2
+			elif kernelname == 'readSpSu3FromAlignedSOARestricted':
+				kernel = self.prg.readSpSu3FromAlignedSOARestricted;
+				elems = mem_size / 72
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 72
+			elif kernelname == 'writeSpSu3FromAlignedSOARestricted':
+				kernel = self.prg.writeSpSu3FromAlignedSOARestricted;
+				elems = mem_size / 72
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 72
+			elif kernelname == 'copyAligned8SpSu3Restricted':
+				kernel = self.prg.copyAligned8SpSu3Restricted;
+				elems = mem_size / 72
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 72 * 2
+			elif kernelname == 'readAligned8SpSu3Restricted':
+				kernel = self.prg.readAligned8SpSu3Restricted;
+				elems = mem_size / 72
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 72
+			elif kernelname == 'writeAligned8SpSu3Restricted':
+				kernel = self.prg.writeAligned8SpSu3Restricted;
+				elems = mem_size / 72
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 72
+
 			elif kernelname == 'copyDouble':
 				kernel = self.prg.copyDouble;
 				elems = mem_size / 8
@@ -552,6 +644,44 @@ if __name__ == '__main__':
 	runner.benchmark('readSpSu3vecFromAlignedRestricted')
 	print 'writeSpSu3vecFromAlignedRestricted ',
 	runner.benchmark('writeSpSu3vecFromAlignedRestricted')
+
+	print # sp su3 kernels
+	print 'copySpSu3 ',
+	runner.benchmark('copySpSu3')
+	print 'readSpSu3 ',
+	runner.benchmark('readSpSu3')
+	print 'writeSpSu3 ',
+	runner.benchmark('writeSpSu3')
+	print 'copySpSu3Restricted ',
+	runner.benchmark('copySpSu3Restricted')
+	print 'readSpSu3Restricted ',
+	runner.benchmark('readSpSu3Restricted')
+	print 'writeSpSu3Restricted ',
+	runner.benchmark('writeSpSu3Restricted')
+	print 'copySpSu3FromAlignedRestricted ',
+	runner.benchmark('copySpSu3FromAlignedRestricted')
+	print 'readSpSu3FromAlignedRestricted ',
+	runner.benchmark('readSpSu3FromAlignedRestricted')
+	print 'writeSpSu3FromAlignedRestricted ',
+	runner.benchmark('writeSpSu3FromAlignedRestricted')
+	print 'copyAligned8SpSu3Restricted ',
+	runner.benchmark('copyAligned8SpSu3Restricted')
+	print 'readAligned8SpSu3Restricted ',
+	runner.benchmark('readAligned8SpSu3Restricted')
+	print 'writeAligned8SpSu3Restricted ',
+	runner.benchmark('writeAligned8SpSu3Restricted')
+	print 'copySpSu3SOARestricted ',
+	runner.benchmark('copySpSu3SOARestricted')
+	print 'readSpSu3SOARestricted ',
+	runner.benchmark('readSpSu3SOARestricted')
+	print 'writeSpSu3SOARestricted ',
+	runner.benchmark('writeSpSu3SOARestricted')
+	print 'copySpSu3FromAlignedSOARestricted ',
+	runner.benchmark('copySpSu3FromAlignedSOARestricted')
+	print 'readSpSu3FromAlignedSOARestricted ',
+	runner.benchmark('readSpSu3FromAlignedSOARestricted')
+	print 'writeSpSu3FromAlignedSOARestricted ',
+	runner.benchmark('writeSpSu3FromAlignedSOARestricted')
 
 	if runner.hasDoublePrecisionSupport():
 		print # double kernels
