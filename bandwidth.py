@@ -60,6 +60,111 @@ class Runner:
 		extensions = self.device.extensions
 		return 'cl_khr_fp64' in extensions or 'cl_amd_fp64' in extensions
 
+	def get_kernel_names(self):
+		# all_kernels() is broken in pyopencl 2011.* :(
+		# return map(lambda kernel: kernel.info.function_name, self.prg.all_kernels())
+		kernels = [
+		 'copyFloat',
+		 'readFloat',
+		 'writeFloat',
+		 'copyFloatRestricted',
+		 'readFloatRestricted',
+		 'writeFloatRestricted',
+		 'copyFloat2',
+		 'readFloat2',
+		 'writeFloat2',
+		 'copyFloat4',
+		 'readFloat4',
+		 'writeFloat4',
+		 'copySpComplex',
+		 'readSpComplex',
+		 'writeSpComplex',
+		 'copySpComplexRestricted',
+		 'readSpComplexRestricted',
+		 'writeSpComplexRestricted',
+		 'copyAlignedSpComplex',
+		 'readAlignedSpComplex',
+		 'writeAlignedSpComplex',
+		 'copyAlignedSpComplexRestricted',
+		 'readAlignedSpComplexRestricted',
+		 'writeAlignedSpComplexRestricted',
+		 'copySpSu3vec',
+		 'readSpSu3vec',
+		 'writeSpSu3vec',
+		 'copySpSu3vecRestricted',
+		 'readSpSu3vecRestricted',
+		 'writeSpSu3vecRestricted',
+		 'copyAlignedSpSu3vecRestricted',
+		 'readAlignedSpSu3vecRestricted',
+		 'writeAlignedSpSu3vecRestricted',
+		 'copyAligned8SpSu3vecRestricted',
+		 'readAligned8SpSu3vecRestricted',
+		 'writeAligned8SpSu3vecRestricted',
+		 'copyAligned16SpSu3vecRestricted',
+		 'readAligned16SpSu3vecRestricted',
+		 'writeAligned16SpSu3vecRestricted',
+		 'copyAligned32SpSu3vecRestricted',
+		 'readAligned32SpSu3vecRestricted',
+		 'writeAligned32SpSu3vecRestricted',
+		 'copySpSu3vecFromAlignedRestricted',
+		 'readSpSu3vecFromAlignedRestricted',
+		 'writeSpSu3vecFromAlignedRestricted',
+		 'copySpSu3',
+		 'readSpSu3',
+		 'writeSpSu3',
+		 'copySpSu3Restricted',
+		 'readSpSu3Restricted',
+		 'writeSpSu3Restricted',
+		 'copySpSu3FromAlignedRestricted',
+		 'readSpSu3FromAlignedRestricted',
+		 'writeSpSu3FromAlignedRestricted',
+		 'copyAligned8SpSu3Restricted',
+		 'readAligned8SpSu3Restricted',
+		 'writeAligned8SpSu3Restricted',
+		 'copySpSu3SOARestricted',
+		 'readSpSu3SOARestricted',
+		 'writeSpSu3SOARestricted',
+		 'copySpSu3FromAlignedSOARestricted',
+		 'readSpSu3FromAlignedSOARestricted',
+		 'writeSpSu3FromAlignedSOARestricted',
+		 'copySpSu3ViaLocalRestricted',
+		 'readSpSu3ViaLocalRestricted',
+		 'writeSpSu3ViaLocalRestricted',
+		 'copySpSu3FromAlignedViaLocalRestricted',
+		 'readSpSu3FromAlignedViaLocalRestricted',
+		 'writeSpSu3FromAlignedViaLocalRestricted'
+		]
+
+		if self.hasDoublePrecisionSupport():
+			kernels.append([
+			 'copyDouble',
+			 'readDouble',
+			 'writeDouble',
+			 'copyDoubleRestricted',
+			 'readDoubleRestricted',
+			 'writeDoubleRestricted',
+			 'copyDouble2',
+			 'readDouble2',
+			 'writeDouble2',
+			 'copyDouble4',
+			 'readDouble4',
+			 'writeDouble4',
+			 'copyDpComplex',
+			 'readDpComplex',
+			 'writeDpComplex',
+			 'copyDpComplexRestricted',
+			 'readDpComplexRestricted',
+			 'writeDpComplexRestricted',
+			 'copyAlignedDpComplex',
+			 'readAlignedDpComplex',
+			 'writeAlignedDpComplex',
+			 'copyAlignedDpComplexRestricted',
+			 'readAlignedDpComplexRestricted',
+			 'writeAlignedDpComplexRestricted'
+			])
+
+		return kernels
+
 	def benchmark(self, kernelname, mem_size = MAX_MEM_SIZE, global_threads = None, local_threads = None):
 		BENCH_RUNS = 10
 		WARMUP_RUNS = 2
@@ -578,204 +683,6 @@ if __name__ == '__main__':
 		runner = Runner()
 
 	print '#Kernel Bytes nanos (rel err) GB/s'
-	print 'copyFloat ',
-	runner.benchmark('copyFloat')
-	print 'readFloat ',
-	runner.benchmark('readFloat')
-	print 'writeFloat ',
-	runner.benchmark('writeFloat')
-	print 'copyFloatRestricted ',
-	runner.benchmark('copyFloatRestricted')
-	print 'readFloatRestricted ',
-	runner.benchmark('readFloatRestricted')
-	print 'writeFloatRestricted ',
-	runner.benchmark('writeFloatRestricted')
-	print 'copyFloat2 ',
-	runner.benchmark('copyFloat2')
-	print 'readFloat2 ',
-	runner.benchmark('readFloat2')
-	print 'writeFloat2 ',
-	runner.benchmark('writeFloat2')
-	print 'copyFloat4 ',
-	runner.benchmark('copyFloat4')
-	print 'readFloat4 ',
-	runner.benchmark('readFloat4')
-	print 'writeFloat4 ',
-	runner.benchmark('writeFloat4')
-
-	print # SP complex Kernels
-
-	print 'copySpComplex ',
-	runner.benchmark('copySpComplex')
-	print 'readSpComplex ',
-	runner.benchmark('readSpComplex')
-	print 'writeSpComplex ',
-	runner.benchmark('writeSpComplex')
-	print 'copySpComplexRestricted ',
-	runner.benchmark('copySpComplexRestricted')
-	print 'readSpComplexRestricted ',
-	runner.benchmark('readSpComplexRestricted')
-	print 'writeSpComplexRestricted ',
-	runner.benchmark('writeSpComplexRestricted')
-	print 'copyAlignedSpComplex ',
-	runner.benchmark('copyAlignedSpComplex')
-	print 'readAlignedSpComplex ',
-	runner.benchmark('readAlignedSpComplex')
-	print 'writeAlignedSpComplex ',
-	runner.benchmark('writeAlignedSpComplex')
-	print 'copyAlignedSpComplexRestricted ',
-	runner.benchmark('copyAlignedSpComplexRestricted')
-	print 'readAlignedSpComplexRestricted ',
-	runner.benchmark('readAlignedSpComplexRestricted')
-	print 'writeAlignedSpComplexRestricted ',
-	runner.benchmark('writeAlignedSpComplexRestricted')
-
-	print # SP SU3 vectors
-
-	print 'copySpSu3vec ',
-	runner.benchmark('copySpSu3vec')
-	print 'readSpSu3vec ',
-	runner.benchmark('readSpSu3vec')
-	print 'writeSpSu3vec ',
-	runner.benchmark('writeSpSu3vec')
-	print 'copySpSu3vecRestricted ',
-	runner.benchmark('copySpSu3vecRestricted')
-	print 'readSpSu3vecRestricted ',
-	runner.benchmark('readSpSu3vecRestricted')
-	print 'writeSpSu3vecRestricted ',
-	runner.benchmark('writeSpSu3vecRestricted')
-	print 'copyAlignedSpSu3vecRestricted ',
-	runner.benchmark('copyAlignedSpSu3vecRestricted')
-	print 'readAlignedSpSu3vecRestricted ',
-	runner.benchmark('readAlignedSpSu3vecRestricted')
-	print 'writeAlignedSpSu3vecRestricted ',
-	runner.benchmark('writeAlignedSpSu3vecRestricted')
-	print 'copyAligned8SpSu3vecRestricted ',
-	runner.benchmark('copyAligned8SpSu3vecRestricted')
-	print 'readAligned8SpSu3vecRestricted ',
-	runner.benchmark('readAligned8SpSu3vecRestricted')
-	print 'writeAligned8SpSu3vecRestricted ',
-	runner.benchmark('writeAligned8SpSu3vecRestricted')
-	print 'copyAligned16SpSu3vecRestricted ',
-	runner.benchmark('copyAligned16SpSu3vecRestricted')
-	print 'readAligned16SpSu3vecRestricted ',
-	runner.benchmark('readAligned16SpSu3vecRestricted')
-	print 'writeAligned16SpSu3vecRestricted ',
-	runner.benchmark('writeAligned16SpSu3vecRestricted')
-	print 'copyAligned32SpSu3vecRestricted ',
-	runner.benchmark('copyAligned32SpSu3vecRestricted')
-	print 'readAligned32SpSu3vecRestricted ',
-	runner.benchmark('readAligned32SpSu3vecRestricted')
-	print 'writeAligned32SpSu3vecRestricted ',
-	runner.benchmark('writeAligned32SpSu3vecRestricted')
-	print 'copySpSu3vecFromAlignedRestricted ',
-	runner.benchmark('copySpSu3vecFromAlignedRestricted')
-	print 'readSpSu3vecFromAlignedRestricted ',
-	runner.benchmark('readSpSu3vecFromAlignedRestricted')
-	print 'writeSpSu3vecFromAlignedRestricted ',
-	runner.benchmark('writeSpSu3vecFromAlignedRestricted')
-
-	print # sp su3 kernels
-	print 'copySpSu3 ',
-	runner.benchmark('copySpSu3')
-	print 'readSpSu3 ',
-	runner.benchmark('readSpSu3')
-	print 'writeSpSu3 ',
-	runner.benchmark('writeSpSu3')
-	print 'copySpSu3Restricted ',
-	runner.benchmark('copySpSu3Restricted')
-	print 'readSpSu3Restricted ',
-	runner.benchmark('readSpSu3Restricted')
-	print 'writeSpSu3Restricted ',
-	runner.benchmark('writeSpSu3Restricted')
-	print 'copySpSu3FromAlignedRestricted ',
-	runner.benchmark('copySpSu3FromAlignedRestricted')
-	print 'readSpSu3FromAlignedRestricted ',
-	runner.benchmark('readSpSu3FromAlignedRestricted')
-	print 'writeSpSu3FromAlignedRestricted ',
-	runner.benchmark('writeSpSu3FromAlignedRestricted')
-	print 'copyAligned8SpSu3Restricted ',
-	runner.benchmark('copyAligned8SpSu3Restricted')
-	print 'readAligned8SpSu3Restricted ',
-	runner.benchmark('readAligned8SpSu3Restricted')
-	print 'writeAligned8SpSu3Restricted ',
-	runner.benchmark('writeAligned8SpSu3Restricted')
-	print 'copySpSu3SOARestricted ',
-	runner.benchmark('copySpSu3SOARestricted')
-	print 'readSpSu3SOARestricted ',
-	runner.benchmark('readSpSu3SOARestricted')
-	print 'writeSpSu3SOARestricted ',
-	runner.benchmark('writeSpSu3SOARestricted')
-	print 'copySpSu3FromAlignedSOARestricted ',
-	runner.benchmark('copySpSu3FromAlignedSOARestricted')
-	print 'readSpSu3FromAlignedSOARestricted ',
-	runner.benchmark('readSpSu3FromAlignedSOARestricted')
-	print 'writeSpSu3FromAlignedSOARestricted ',
-	runner.benchmark('writeSpSu3FromAlignedSOARestricted')
-	print 'copySpSu3ViaLocalRestricted ',
-	runner.benchmark('copySpSu3ViaLocalRestricted')
-	print 'readSpSu3ViaLocalRestricted ',
-	runner.benchmark('readSpSu3ViaLocalRestricted')
-	print 'writeSpSu3ViaLocalRestricted ',
-	runner.benchmark('writeSpSu3ViaLocalRestricted')
-	print 'copySpSu3FromAlignedViaLocalRestricted ',
-	runner.benchmark('copySpSu3FromAlignedViaLocalRestricted')
-	print 'readSpSu3FromAlignedViaLocalRestricted ',
-	runner.benchmark('readSpSu3FromAlignedViaLocalRestricted')
-	print 'writeSpSu3FromAlignedViaLocalRestricted ',
-	runner.benchmark('writeSpSu3FromAlignedViaLocalRestricted')
-
-	if runner.hasDoublePrecisionSupport():
-		print # double kernels
-
-		print 'copyDouble ',
-		runner.benchmark('copyDouble')
-		print 'readDouble ',
-		runner.benchmark('readDouble')
-		print 'writeDouble ',
-		runner.benchmark('writeDouble')
-		print 'copyDoubleRestricted ',
-		runner.benchmark('copyDoubleRestricted')
-		print 'readDoubleRestricted ',
-		runner.benchmark('readDoubleRestricted')
-		print 'writeDoubleRestricted ',
-		runner.benchmark('writeDoubleRestricted')
-		print 'copyDouble2 ',
-		runner.benchmark('copyDouble2')
-		print 'readDouble2 ',
-		runner.benchmark('readDouble2')
-		print 'writeDouble2 ',
-		runner.benchmark('writeDouble2')
-		print 'copyDouble4 ',
-		runner.benchmark('copyDouble4')
-		print 'readDouble4 ',
-		runner.benchmark('readDouble4')
-		print 'writeDouble4 ',
-		runner.benchmark('writeDouble4')
-
-		print # double precision complex
-
-		print 'copyDpComplex ',
-		runner.benchmark('copyDpComplex')
-		print 'readDpComplex ',
-		runner.benchmark('readDpComplex')
-		print 'writeDpComplex ',
-		runner.benchmark('writeDpComplex')
-		print 'copyDpComplexRestricted ',
-		runner.benchmark('copyDpComplexRestricted')
-		print 'readDpComplexRestricted ',
-		runner.benchmark('readDpComplexRestricted')
-		print 'writeDpComplexRestricted ',
-		runner.benchmark('writeDpComplexRestricted')
-		print 'copyAlignedDpComplex ',
-		runner.benchmark('copyAlignedDpComplex')
-		print 'readAlignedDpComplex ',
-		runner.benchmark('readAlignedDpComplex')
-		print 'writeAlignedDpComplex ',
-		runner.benchmark('writeAlignedDpComplex')
-		print 'copyAlignedDpComplexRestricted ',
-		runner.benchmark('copyAlignedDpComplexRestricted')
-		print 'readAlignedDpComplexRestricted ',
-		runner.benchmark('readAlignedDpComplexRestricted')
-		print 'writeAlignedDpComplexRestricted ',
-		runner.benchmark('writeAlignedDpComplexRestricted')
+	for kernel in runner.get_kernel_names():
+		print '{0} '.format(kernel),
+		runner.benchmark(kernel)
