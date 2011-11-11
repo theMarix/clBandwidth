@@ -140,7 +140,7 @@ class Runner:
 		]
 
 		if self.hasDoublePrecisionSupport():
-			kernels.append([
+			kernels.extend([
 			 'copyDouble',
 			 'readDouble',
 			 'writeDouble',
