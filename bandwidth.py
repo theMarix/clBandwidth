@@ -678,6 +678,7 @@ class Runner:
 if __name__ == '__main__':
 	parser = optparse.OptionParser(description='Benchmark global memory bandwidth')
 	parser.add_option('-d', '--device', dest='device', type=int, metavar='I', help='The device to use for the measurement')
+	parser.add_option('-p', '--plot', dest='plot', action='store_true', default=False, help='Make a plot of the measurements')
 
 	(args, rem) = parser.parse_args()
 
@@ -699,3 +700,18 @@ if __name__ == '__main__':
 
 	for datapoint in datapoints:
 		print '{0.kernel} {0.bytes_transferred} {0.time:.0f} ({1:.1%}) {0.bandwidth}'.format(datapoint, datapoint.time_std / datapoint.time)
+
+	if args.plot:
+		import matplotlib.pyplot as plt # by including it here we won't need it unless we want to plot
+
+		bandwidths = map(lambda p: p.bandwidth, datapoints)
+		xticks = map(lambda p: p.kernel, datapoints)
+		ind = np.arange(len(datapoints)) + 0.5
+
+		plt.figure(figsize=(16,12))
+		plt.axes([0.125,.4,.775,.5])
+		plt.title('Global Memory Bandwidth')
+		plt.ylabel('GB/s')
+		plt.bar(ind, bandwidths, align='center')
+		plt.xticks(ind, xticks, rotation='vertical')
+		plt.show()
