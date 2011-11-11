@@ -351,6 +351,36 @@ class Runner:
 				elems = mem_size / 72
 				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
 				bytes_transferred = elems * 72
+			elif kernelname == 'copySpSu3ViaLocalRestricted':
+				kernel = self.prg.copySpSu3ViaLocalRestricted;
+				elems = mem_size / 72
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems), cl.LocalMemory(local_threads * 72))
+				bytes_transferred = elems * 72 * 2
+			elif kernelname == 'readSpSu3ViaLocalRestricted':
+				kernel = self.prg.readSpSu3ViaLocalRestricted;
+				elems = mem_size / 72
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems), cl.LocalMemory(local_threads * 72))
+				bytes_transferred = (elems + global_threads) * 72
+			elif kernelname == 'writeSpSu3ViaLocalRestricted':
+				kernel = self.prg.writeSpSu3ViaLocalRestricted;
+				elems = mem_size / 72
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems), cl.LocalMemory(local_threads * 72))
+				bytes_transferred = elems * 72
+			elif kernelname == 'copySpSu3FromAlignedViaLocalRestricted':
+				kernel = self.prg.copySpSu3FromAlignedViaLocalRestricted;
+				elems = mem_size / 72
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems), cl.LocalMemory(local_threads * 72))
+				bytes_transferred = elems * 72 * 2
+			elif kernelname == 'readSpSu3FromAlignedViaLocalRestricted':
+				kernel = self.prg.readSpSu3FromAlignedViaLocalRestricted;
+				elems = mem_size / 72
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems), cl.LocalMemory(local_threads * 72))
+				bytes_transferred = (elems + global_threads) * 72
+			elif kernelname == 'writeSpSu3FromAlignedViaLocalRestricted':
+				kernel = self.prg.writeSpSu3FromAlignedViaLocalRestricted;
+				elems = mem_size / 72
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems), cl.LocalMemory(local_threads * 72))
+				bytes_transferred = elems * 72
 
 			elif kernelname == 'copySpSu3FromAlignedRestricted':
 				kernel = self.prg.copySpSu3FromAlignedRestricted;
@@ -682,6 +712,18 @@ if __name__ == '__main__':
 	runner.benchmark('readSpSu3FromAlignedSOARestricted')
 	print 'writeSpSu3FromAlignedSOARestricted ',
 	runner.benchmark('writeSpSu3FromAlignedSOARestricted')
+	print 'copySpSu3ViaLocalRestricted ',
+	runner.benchmark('copySpSu3ViaLocalRestricted')
+	print 'readSpSu3ViaLocalRestricted ',
+	runner.benchmark('readSpSu3ViaLocalRestricted')
+	print 'writeSpSu3ViaLocalRestricted ',
+	runner.benchmark('writeSpSu3ViaLocalRestricted')
+	print 'copySpSu3FromAlignedViaLocalRestricted ',
+	runner.benchmark('copySpSu3FromAlignedViaLocalRestricted')
+	print 'readSpSu3FromAlignedViaLocalRestricted ',
+	runner.benchmark('readSpSu3FromAlignedViaLocalRestricted')
+	print 'writeSpSu3FromAlignedViaLocalRestricted ',
+	runner.benchmark('writeSpSu3FromAlignedViaLocalRestricted')
 
 	if runner.hasDoublePrecisionSupport():
 		print # double kernels

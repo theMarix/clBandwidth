@@ -621,6 +621,47 @@ __kernel void writeSpSu3SOARestricted(__global spComplex * const restrict out, c
 	}
 }
 
+spSu3 getSpSu3ViaLocal(__global const spSu3 * const restrict in, const size_t block, __local spSu3 * const restrict scratch)
+{
+	event_t event = async_work_group_copy((__local float2 *) scratch, (__global float2 *) &in[block * get_local_size(0)], get_local_size(0) * 9, 0);
+	wait_group_events(1, &event);
+	return scratch[get_local_id(0)];
+}
+
+
+void putSpSu3ViaLocal(__global spSu3 * const restrict out, const size_t block, const spSu3 val, __local spSu3 * const restrict scratch)
+{
+	scratch[get_local_id(0)] = val;
+	barrier(CLK_LOCAL_MEM_FENCE);
+	event_t event = async_work_group_copy((__global float2 *) &out[block * get_local_size(0)], (__local float2 *) scratch, get_local_size(0) * 9, 0);
+	wait_group_events(1, &event);
+}
+
+__kernel void copySpSu3ViaLocalRestricted(__global spSu3 * const restrict out, __global const spSu3 * const restrict in, const ulong elems, __local spSu3 * const restrict scratch)
+{
+	for(size_t i = get_group_id(0); i < elems / get_num_groups(0); i += get_num_groups(0)) {
+		spSu3 tmp = getSpSu3ViaLocal(in, i, scratch);
+		putSpSu3ViaLocal(out, i, tmp, scratch);
+	}
+}
+__kernel void readSpSu3ViaLocalRestricted(__global spSu3 * const restrict out, __global const spSu3 * const restrict in, const ulong elems, __local spSu3 * const restrict scratch)
+{
+	spComplex bla = make_spComplex(0.0f, 0.0f);
+	spSu3 tmp = make_spSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+	for(size_t i = get_group_id(0); i < elems / get_num_groups(0); i += get_num_groups(0)) {
+		tmp = spSu3Add(tmp, getSpSu3ViaLocal(in, i, scratch));
+	}
+	putSpSu3ViaLocal(out, get_global_id(0), tmp, scratch);
+}
+__kernel void writeSpSu3ViaLocalRestricted(__global spSu3 * const restrict out, const float in, const ulong elems, __local spSu3 * const restrict scratch)
+{
+	for(size_t i = get_group_id(0); i < elems / get_num_groups(0); i += get_num_groups(0)) {
+		spComplex bla = make_spComplex(in, in);
+		spSu3 tmp = make_spSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+		putSpSu3ViaLocal(out, i, tmp, scratch);
+	}
+}
+
 typedef struct {
 	alignedSpComplex e00, e01, e02;
 	alignedSpComplex e10, e11, e12;
@@ -718,6 +759,46 @@ __kernel void writeSpSu3FromAlignedSOARestricted(__global alignedSpComplex * con
 		putSpSu3FromAlignedSOA(out, i, tmp);
 	}
 }
+
+spSu3FromAligned getSpSu3FromAlignedViaLocal(__global const spSu3FromAligned * const restrict in, const size_t block, __local spSu3FromAligned * const restrict scratch)
+{
+	event_t event = async_work_group_copy((__local float2 *) scratch, (__global float2 *) &in[block * get_local_size(0)], get_local_size(0) * 9, 0);
+	wait_group_events(1, &event);
+	return scratch[get_local_id(0)];
+}
+void putSpSu3FromAlignedViaLocal(__global spSu3FromAligned * const restrict out, const size_t block, const spSu3FromAligned val, __local spSu3FromAligned * const restrict scratch)
+{
+	scratch[get_local_id(0)] = val;
+	barrier(CLK_LOCAL_MEM_FENCE);
+	event_t event = async_work_group_copy((__global float2 *) &out[block * get_local_size(0)], (__local float2 *) scratch, get_local_size(0) * 9, 0);
+	wait_group_events(1, &event);
+}
+
+__kernel void copySpSu3FromAlignedViaLocalRestricted(__global spSu3FromAligned * const restrict out, __global const spSu3FromAligned * const restrict in, const ulong elems, __local spSu3FromAligned * const restrict scratch)
+{
+	for(size_t i = get_group_id(0); i < elems / get_num_groups(0); i += get_num_groups(0)) {
+		spSu3FromAligned tmp = getSpSu3FromAlignedViaLocal(in, i, scratch);
+		putSpSu3FromAlignedViaLocal(out, i, tmp, scratch);
+	}
+}
+__kernel void readSpSu3FromAlignedViaLocalRestricted(__global spSu3FromAligned * const restrict out, __global const spSu3FromAligned * const restrict in, const ulong elems, __local spSu3FromAligned * const restrict scratch)
+{
+	alignedSpComplex bla = make_alignedSpComplex(0.0f, 0.0f);
+	spSu3FromAligned tmp = make_spSu3FromAligned(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+	for(size_t i = get_group_id(0); i < elems / get_num_groups(0); i += get_num_groups(0)) {
+		tmp = spSu3FromAlignedAdd(tmp, getSpSu3FromAlignedViaLocal(in, i, scratch));
+	}
+	putSpSu3FromAlignedViaLocal(out, get_global_id(0), tmp, scratch);
+}
+__kernel void writeSpSu3FromAlignedViaLocalRestricted(__global spSu3FromAligned * const restrict out, const float in, const ulong elems, __local spSu3FromAligned * const restrict scratch)
+{
+	for(size_t i = get_group_id(0); i < elems / get_num_groups(0); i += get_num_groups(0)) {
+		alignedSpComplex bla = make_alignedSpComplex(in, in);
+		spSu3FromAligned tmp = make_spSu3FromAligned(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+		putSpSu3FromAlignedViaLocal(out, i, tmp, scratch);
+	}
+}
+
 
 typedef struct {
 	spComplex e00, e01, e02;
