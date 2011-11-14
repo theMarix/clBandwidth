@@ -969,6 +969,7 @@ if __name__ == '__main__':
 	parser.add_option('-d', '--device', type=int, metavar='I', help='The device to use for the measurement')
 	parser.add_option('-p', '--plot', action='store_true', default=False, help='Make a plot of the measurements')
 	parser.add_option('-e', '--plot-errorbars', action='store_true', default=False, help='Add error bars to the plot')
+	parser.add_option('-m', '--plot-marker', type=float, dest='plot_markers', action='append', metavar='GB/s', help='Add a marker to the plot at the given performance')
 	parser.add_option('-g', '--global-threads', type=int, metavar='NUM', help='The number of global threads to use')
 	parser.add_option('-l', '--local-threads', type=int, metavar='NUM', help='The number of global threads to use')
 
@@ -1016,6 +1017,11 @@ if __name__ == '__main__':
 			plt.bar(ind, bandwidths, align='center', yerr=errs, ecolor='black')
 		else:
 			plt.bar(ind, bandwidths, align='center')
+
+		# handle markers
+		if args.plot_markers:
+			for marker in args.plot_markers:
+				plt.axhline(y=marker, color='r')
 
 		# Avoid the error bars triggering the lower quadrant to show
 		ymin, ymax = plt.ylim()
