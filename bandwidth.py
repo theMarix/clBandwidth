@@ -879,13 +879,20 @@ if __name__ == '__main__':
 	parser.add_option('-d', '--device', dest='device', type=int, metavar='I', help='The device to use for the measurement')
 	parser.add_option('-p', '--plot', dest='plot', action='store_true', default=False, help='Make a plot of the measurements')
 	parser.add_option('-e', '--plot-errorbars', dest='ploterrorbars', action='store_true', default=False, help='Add error bars to the plot')
+	parser.add_option('-g', '--global-threads', dest='global_threads', type=int, metavar='NUM', help='The number of global threads to use')
+	parser.add_option('-l', '--local-threads', dest='local_threads', type=int, metavar='NUM', help='The number of global threads to use')
 
 	(args, rem) = parser.parse_args()
 
+	runner_args = {}
 	if args.device != None:
-		runner = Runner(args.device)
-	else:
-		runner = Runner()
+		runner_args['device'] = args.device
+	if args.global_threads != None:
+		runner_args['global_threads'] = args.global_threads
+	if args.local_threads != None:
+		runner_args['local_threads'] = args.local_threads
+
+	runner = Runner(**runner_args)
 
 	datapoints = []
 
