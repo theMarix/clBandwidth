@@ -1792,4 +1792,235 @@ __kernel void writeDpSu3vecSOARestricted(__global alignedDpComplex * const restr
 	}
 }
 
+
+/*
+ * Double precisoin SU3 matrices
+ * We always base on aligned types, even if we don't explicitly align the struct
+ */
+
+typedef struct {
+	alignedDpComplex e00, e01, e02;
+	alignedDpComplex e10, e11, e12;
+	alignedDpComplex e20, e21, e22;
+} dpSu3;
+
+dpSu3 make_dpSu3(const alignedDpComplex e00, const alignedDpComplex e01, const alignedDpComplex e02,
+                 const alignedDpComplex e10, const alignedDpComplex e11, const alignedDpComplex e12,
+                 const alignedDpComplex e20, const alignedDpComplex e21, const alignedDpComplex e22) {
+	return (dpSu3) {e00, e01, e02,
+	                e10, e11, e12,
+	                e20, e21, e22};
+}
+
+dpSu3 dpSu3Add(const dpSu3 left, const dpSu3 right) {
+	return make_dpSu3(
+		alignedDpComplexAdd(left.e00, right.e00),
+		alignedDpComplexAdd(left.e01, right.e01),
+		alignedDpComplexAdd(left.e02, right.e02),
+		alignedDpComplexAdd(left.e10, right.e10),
+		alignedDpComplexAdd(left.e11, right.e11),
+		alignedDpComplexAdd(left.e12, right.e12),
+		alignedDpComplexAdd(left.e20, right.e20),
+		alignedDpComplexAdd(left.e21, right.e21),
+		alignedDpComplexAdd(left.e22, right.e22)
+	);
+}
+
+__kernel void copyDpSu3(__global dpSu3 * out, __global dpSu3 * in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readDpSu3(__global dpSu3 * out, __global dpSu3 * in, const ulong elems)
+{
+	alignedDpComplex bla = make_alignedDpComplex(0.0f, 0.0f);
+	dpSu3 tmp = make_dpSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = dpSu3Add(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeDpSu3(__global dpSu3 * out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		alignedDpComplex bla = make_alignedDpComplex(in, in);
+		out[i] = make_dpSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+	}
+}
+
+__kernel void copyDpSu3Restricted(__global dpSu3 * const restrict out, __global const dpSu3 * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readDpSu3Restricted(__global dpSu3 * const restrict out, __global const dpSu3 * const restrict in, const ulong elems)
+{
+	alignedDpComplex bla = make_alignedDpComplex(0.0f, 0.0f);
+	dpSu3 tmp = make_dpSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = dpSu3Add(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeDpSu3Restricted(__global dpSu3 * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		alignedDpComplex bla = make_alignedDpComplex(in, in);
+		out[i] = make_dpSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+	}
+}
+
+typedef struct {
+	alignedDpComplex e00, e01, e02;
+	alignedDpComplex e10, e11, e12;
+	alignedDpComplex e20, e21, e22;
+} __attribute((aligned(16))) aligned16DpSu3;
+
+aligned16DpSu3 make_aligned16DpSu3(const alignedDpComplex e00, const alignedDpComplex e01, const alignedDpComplex e02,
+                                   const alignedDpComplex e10, const alignedDpComplex e11, const alignedDpComplex e12,
+                                   const alignedDpComplex e20, const alignedDpComplex e21, const alignedDpComplex e22) {
+	return (aligned16DpSu3) {e00, e01, e02,
+	                         e10, e11, e12,
+	                         e20, e21, e22};
+}
+
+aligned16DpSu3 aligned16DpSu3Add(const aligned16DpSu3 left, const aligned16DpSu3 right) {
+	return make_aligned16DpSu3(
+		alignedDpComplexAdd(left.e00, right.e00),
+		alignedDpComplexAdd(left.e01, right.e01),
+		alignedDpComplexAdd(left.e02, right.e02),
+		alignedDpComplexAdd(left.e10, right.e10),
+		alignedDpComplexAdd(left.e11, right.e11),
+		alignedDpComplexAdd(left.e12, right.e12),
+		alignedDpComplexAdd(left.e20, right.e20),
+		alignedDpComplexAdd(left.e21, right.e21),
+		alignedDpComplexAdd(left.e22, right.e22)
+	);
+}
+
+
+__kernel void copyAligned16DpSu3Restricted(__global aligned16DpSu3 * const restrict out, __global const aligned16DpSu3 * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readAligned16DpSu3Restricted(__global aligned16DpSu3 * const restrict out, __global const aligned16DpSu3 * const restrict in, const ulong elems)
+{
+	alignedDpComplex bla = make_alignedDpComplex(0.0f, 0.0f);
+	aligned16DpSu3 tmp = make_aligned16DpSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = aligned16DpSu3Add(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeAligned16DpSu3Restricted(__global aligned16DpSu3 * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		alignedDpComplex bla = make_alignedDpComplex(in, in);
+		out[i] = make_aligned16DpSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+	}
+}
+
+typedef struct {
+	alignedDpComplex e00, e01, e02;
+	alignedDpComplex e10, e11, e12;
+	alignedDpComplex e20, e21, e22;
+} __attribute((aligned(32))) aligned32DpSu3;
+
+aligned32DpSu3 make_aligned32DpSu3(const alignedDpComplex e00, const alignedDpComplex e01, const alignedDpComplex e02,
+                                   const alignedDpComplex e10, const alignedDpComplex e11, const alignedDpComplex e12,
+                                   const alignedDpComplex e20, const alignedDpComplex e21, const alignedDpComplex e22) {
+	return (aligned32DpSu3) {e00, e01, e02,
+	                         e10, e11, e12,
+	                         e20, e21, e22};
+}
+
+aligned32DpSu3 aligned32DpSu3Add(const aligned32DpSu3 left, const aligned32DpSu3 right) {
+	return make_aligned32DpSu3(
+		alignedDpComplexAdd(left.e00, right.e00),
+		alignedDpComplexAdd(left.e01, right.e01),
+		alignedDpComplexAdd(left.e02, right.e02),
+		alignedDpComplexAdd(left.e10, right.e10),
+		alignedDpComplexAdd(left.e11, right.e11),
+		alignedDpComplexAdd(left.e12, right.e12),
+		alignedDpComplexAdd(left.e20, right.e20),
+		alignedDpComplexAdd(left.e21, right.e21),
+		alignedDpComplexAdd(left.e22, right.e22)
+	);
+}
+
+__kernel void copyAligned32DpSu3Restricted(__global aligned32DpSu3 * const restrict out, __global const aligned32DpSu3 * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readAligned32DpSu3Restricted(__global aligned32DpSu3 * const restrict out, __global const aligned32DpSu3 * const restrict in, const ulong elems)
+{
+	alignedDpComplex bla = make_alignedDpComplex(0.0f, 0.0f);
+	aligned32DpSu3 tmp = make_aligned32DpSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = aligned32DpSu3Add(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeAligned32DpSu3Restricted(__global aligned32DpSu3 * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		alignedDpComplex bla = make_alignedDpComplex(in, in);
+		out[i] = make_aligned32DpSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+	}
+}
+
+dpSu3 getDpSu3SOA(__global const alignedDpComplex * const restrict in, const size_t i)
+{
+	const size_t stride = get_global_size(0);
+
+	return make_dpSu3(in[0 * stride + i], in[1 * stride + i], in[2 * stride + i],
+                      in[3 * stride + i], in[4 * stride + i], in[5 * stride + i],
+                      in[6 * stride + i], in[7 * stride + i], in[8 * stride + i]);
+}
+
+void putDpSu3SOA(__global alignedDpComplex * const restrict out, const size_t i, const dpSu3 val)
+{
+	const size_t stride = get_global_size(0);
+	out[0 * stride + i] = val.e00;
+	out[1 * stride + i] = val.e01;
+	out[2 * stride + i] = val.e02;
+	out[3 * stride + i] = val.e10;
+	out[4 * stride + i] = val.e11;
+	out[5 * stride + i] = val.e12;
+	out[6 * stride + i] = val.e20;
+	out[7 * stride + i] = val.e21;
+	out[8 * stride + i] = val.e22;
+}
+
+__kernel void copyDpSu3SOARestricted(__global alignedDpComplex * const restrict out, __global const alignedDpComplex * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		dpSu3 tmp = getDpSu3SOA(in, i);
+		putDpSu3SOA(out, i, tmp);
+	}
+}
+__kernel void readDpSu3SOARestricted(__global alignedDpComplex * const restrict out, __global const alignedDpComplex * const restrict in, const ulong elems)
+{
+	alignedDpComplex bla = make_alignedDpComplex(0.0f, 0.0f);
+	dpSu3 tmp = make_dpSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = dpSu3Add(tmp, getDpSu3SOA(in, i));
+	}
+	putDpSu3SOA(out, get_global_id(0), tmp);
+}
+__kernel void writeDpSu3SOARestricted(__global alignedDpComplex * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		alignedDpComplex bla = make_alignedDpComplex(in, in);
+		dpSu3 tmp = make_dpSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+		putDpSu3SOA(out, i, tmp);
+	}
+}
+
 #endif /* DOUBLE_ENABLED */

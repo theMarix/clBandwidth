@@ -213,6 +213,21 @@ class Runner:
 			 'copyDpSu3vecSOARestricted',
 			 'readDpSu3vecSOARestricted',
 			 'writeDpSu3vecSOARestricted',
+			 'copyDpSu3',
+			 'readDpSu3',
+			 'writeDpSu3',
+			 'copyDpSu3Restricted',
+			 'readDpSu3Restricted',
+			 'writeDpSu3Restricted',
+			 'copyAligned16DpSu3Restricted',
+			 'readAligned16DpSu3Restricted',
+			 'writeAligned16DpSu3Restricted',
+			 'copyAligned32DpSu3Restricted',
+			 'readAligned32DpSu3Restricted',
+			 'writeAligned32DpSu3Restricted',
+			 'copyDpSu3SOARestricted',
+			 'readDpSu3SOARestricted',
+			 'writeDpSu3SOARestricted',
 			])
 
 		return kernels
@@ -948,6 +963,83 @@ class Runner:
 				elems = mem_size / 48
 				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
 				bytes_transferred = elems * 48
+
+			elif kernelname == 'copyDpSu3':
+				kernel = self.prg.copyDpSu3;
+				elems = mem_size / 144
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 144 * 2
+			elif kernelname == 'readDpSu3':
+				kernel = self.prg.readDpSu3;
+				elems = mem_size / 144
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 144
+			elif kernelname == 'writeDpSu3':
+				kernel = self.prg.writeDpSu3;
+				elems = mem_size / 144
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 144
+			elif kernelname == 'copyDpSu3Restricted':
+				kernel = self.prg.copyDpSu3Restricted;
+				elems = mem_size / 144
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 144 * 2
+			elif kernelname == 'readDpSu3Restricted':
+				kernel = self.prg.readDpSu3Restricted;
+				elems = mem_size / 144
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 144
+			elif kernelname == 'writeDpSu3Restricted':
+				kernel = self.prg.writeDpSu3Restricted;
+				elems = mem_size / 144
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 144
+			elif kernelname == 'copyAligned16DpSu3Restricted':
+				kernel = self.prg.copyAligned16DpSu3Restricted;
+				elems = mem_size / 144
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 144 * 2
+			elif kernelname == 'readAligned16DpSu3Restricted':
+				kernel = self.prg.readAligned16DpSu3Restricted;
+				elems = mem_size / 144
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 144
+			elif kernelname == 'writeAligned16DpSu3Restricted':
+				kernel = self.prg.writeAligned16DpSu3Restricted;
+				elems = mem_size / 144
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 144
+			elif kernelname == 'copyAligned32DpSu3Restricted':
+				kernel = self.prg.copyAligned32DpSu3Restricted;
+				elems = mem_size / 160
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 144 * 2
+			elif kernelname == 'readAligned32DpSu3Restricted':
+				kernel = self.prg.readAligned32DpSu3Restricted;
+				elems = mem_size / 160
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 144
+			elif kernelname == 'writeAligned32DpSu3Restricted':
+				kernel = self.prg.writeAligned32DpSu3Restricted;
+				elems = mem_size / 160
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 144
+			elif kernelname == 'copyDpSu3SOARestricted':
+				kernel = self.prg.copyDpSu3SOARestricted;
+				elems = mem_size / 144
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 144 * 2
+			elif kernelname == 'readDpSu3SOARestricted':
+				kernel = self.prg.readDpSu3SOARestricted;
+				elems = mem_size / 144
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 144
+			elif kernelname == 'writeDpSu3SOARestricted':
+				kernel = self.prg.writeDpSu3SOARestricted;
+				elems = mem_size / 144
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 144
+
 			else:
 				raise NameError( "Don't know how to run {0}".format(kernelname) )
 
