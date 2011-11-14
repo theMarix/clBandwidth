@@ -878,6 +878,7 @@ if __name__ == '__main__':
 	parser = optparse.OptionParser(description='Benchmark global memory bandwidth')
 	parser.add_option('-d', '--device', dest='device', type=int, metavar='I', help='The device to use for the measurement')
 	parser.add_option('-p', '--plot', dest='plot', action='store_true', default=False, help='Make a plot of the measurements')
+	parser.add_option('-e', '--plot-errorbars', dest='ploterrorbars', action='store_true', default=False, help='Add error bars to the plot')
 
 	(args, rem) = parser.parse_args()
 
@@ -906,12 +907,17 @@ if __name__ == '__main__':
 
 		bandwidths = map(lambda p: p.bandwidth, datapoints)
 		xticks = map(lambda p: p.kernel, datapoints)
+		if args.ploterrorbars:
+			errs = map(lambda p: p.time_std / p.time * p.bandwidth, datapoints)
 		ind = np.arange(len(datapoints)) + 0.5
 
 		plt.figure(figsize=(16,12))
 		plt.axes([0.125,.4,.775,.5])
 		plt.title('Global Memory Bandwidth')
 		plt.ylabel('GB/s')
-		plt.bar(ind, bandwidths, align='center')
+		if args.ploterrorbars:
+			plt.bar(ind, bandwidths, align='center', yerr=errs, ecolor='black')
+		else:
+			plt.bar(ind, bandwidths, align='center')
 		plt.xticks(ind, xticks, rotation='vertical')
 		plt.show()
