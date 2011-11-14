@@ -1019,6 +1019,81 @@ __kernel void writeSpSpinorFullSOARestricted(__global spComplex * const restrict
 	}
 }
 
+typedef struct {
+	spSu3vecFromAligned e0;
+	spSu3vecFromAligned e1;
+	spSu3vecFromAligned e2;
+	spSu3vecFromAligned e3;
+} spSpinorFromFromAligned;
+
+spSpinorFromFromAligned make_spSpinorFromFromAligned(const spSu3vecFromAligned e0, const spSu3vecFromAligned e1, const spSu3vecFromAligned e2, const spSu3vecFromAligned e3)
+{
+	return (spSpinorFromFromAligned) {e0, e1, e2, e3};
+}
+
+spSpinorFromFromAligned spSpinorFromFromAlignedAdd(const spSpinorFromFromAligned left, const spSpinorFromFromAligned right)
+{
+	return make_spSpinorFromFromAligned(spSu3vecFromAlignedAdd(left.e0, right.e0),
+	                                    spSu3vecFromAlignedAdd(left.e1, right.e1),
+	                                    spSu3vecFromAlignedAdd(left.e2, right.e2),
+	                                    spSu3vecFromAlignedAdd(left.e3, right.e3));
+}
+
+spSpinorFromFromAligned getSpSpinorFullAlignedSOA(__global const alignedSpComplex * const restrict in, const size_t i)
+{
+	const size_t stride = get_global_size(0);
+
+	return make_spSpinorFromFromAligned(make_spSu3vecFromAligned(in[0 * stride + i], in[ 1 * stride + i], in[ 2 * stride + i]),
+	                                    make_spSu3vecFromAligned(in[3 * stride + i], in[ 4 * stride + i], in[ 5 * stride + i]),
+	                                    make_spSu3vecFromAligned(in[6 * stride + i], in[ 7 * stride + i], in[ 8 * stride + i]),
+	                                    make_spSu3vecFromAligned(in[9 * stride + i], in[10 * stride + i], in[11 * stride + i]));
+}
+
+void putSpSpinorFullAlignedSOA(__global alignedSpComplex * const restrict out, const size_t i, const spSpinorFromFromAligned val)
+{
+	const size_t stride = get_global_size(0);
+	out[ 0 * stride + i] = val.e0.e0;
+	out[ 1 * stride + i] = val.e0.e1;
+	out[ 2 * stride + i] = val.e0.e2;
+	out[ 3 * stride + i] = val.e1.e0;
+	out[ 4 * stride + i] = val.e1.e1;
+	out[ 5 * stride + i] = val.e1.e2;
+	out[ 6 * stride + i] = val.e2.e0;
+	out[ 7 * stride + i] = val.e2.e1;
+	out[ 8 * stride + i] = val.e2.e2;
+	out[ 9 * stride + i] = val.e3.e0;
+	out[10 * stride + i] = val.e3.e1;
+	out[11 * stride + i] = val.e3.e2;
+}
+
+__kernel void copySpSpinorFullAlignedSOARestricted(__global alignedSpComplex * const restrict out, __global const alignedSpComplex * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		spSpinorFromFromAligned tmp = getSpSpinorFullAlignedSOA(in, i);
+		putSpSpinorFullAlignedSOA(out, i, tmp);
+	}
+}
+__kernel void readSpSpinorFullAlignedSOARestricted(__global alignedSpComplex * const restrict out, __global const alignedSpComplex * const restrict in, const ulong elems)
+{
+	alignedSpComplex bla = make_alignedSpComplex(0.0f, 0.0f);
+	spSu3vecFromAligned foo = make_spSu3vecFromAligned(bla, bla, bla);
+	spSpinorFromFromAligned tmp = make_spSpinorFromFromAligned(foo, foo, foo, foo);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = spSpinorFromFromAlignedAdd(tmp, getSpSpinorFullAlignedSOA(in, i));
+	}
+	putSpSpinorFullAlignedSOA(out, get_global_id(0), tmp);
+}
+__kernel void writeSpSpinorFullAlignedSOARestricted(__global alignedSpComplex * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		alignedSpComplex bla = make_alignedSpComplex(in, in);
+		spSu3vecFromAligned foo = make_spSu3vecFromAligned(bla, bla, bla);
+		spSpinorFromFromAligned tmp = make_spSpinorFromFromAligned(foo, foo, foo, foo);
+		putSpSpinorFullAlignedSOA(out, i, tmp);
+	}
+}
+
+
 spSpinor getSpSpinorViaLocal(__global const spSpinor * const restrict in, const size_t block, __local spSpinor * const restrict scratch)
 {
 	event_t event = async_work_group_copy((__local float2 *) scratch, (__global float2 *) &in[block * get_local_size(0)], get_local_size(0) * 12, 0);

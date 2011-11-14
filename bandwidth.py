@@ -161,6 +161,9 @@ class Runner:
 		 'copySpSpinorFullSOARestricted',
 		 'readSpSpinorFullSOARestricted',
 		 'writeSpSpinorFullSOARestricted',
+		 'copySpSpinorFullAlignedSOARestricted',
+		 'readSpSpinorFullAlignedSOARestricted',
+		 'writeSpSpinorFullAlignedSOARestricted',
 		 'copySpSpinorFromAlignedSOARestricted',
 		 'readSpSpinorFromAlignedSOARestricted',
 		 'writeSpSpinorFromAlignedSOARestricted',
@@ -624,6 +627,21 @@ class Runner:
 				bytes_transferred = (elems + global_threads) * 96
 			elif kernelname == 'writeSpSpinorFullSOARestricted':
 				kernel = self.prg.writeSpSpinorFullSOARestricted;
+				elems = mem_size / 96
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 96
+			elif kernelname == 'copySpSpinorFullAlignedSOARestricted':
+				kernel = self.prg.copySpSpinorFullAlignedSOARestricted;
+				elems = mem_size / 96
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 96 * 2
+			elif kernelname == 'readSpSpinorFullAlignedSOARestricted':
+				kernel = self.prg.readSpSpinorFullAlignedSOARestricted;
+				elems = mem_size / 96
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 96
+			elif kernelname == 'writeSpSpinorFullAlignedSOARestricted':
+				kernel = self.prg.writeSpSpinorFullAlignedSOARestricted;
 				elems = mem_size / 96
 				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
 				bytes_transferred = elems * 96
