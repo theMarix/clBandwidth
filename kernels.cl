@@ -1600,4 +1600,196 @@ __kernel void writeAlignedDpComplexRestricted(__global alignedDpComplex * const 
 	}
 }
 
+
+/*
+ * Double precisoin SU3 vectors
+ * We always base on aligned types, even if we don't explicitly align the struct
+ */
+
+typedef struct {
+	alignedDpComplex e0;
+	alignedDpComplex e1;
+	alignedDpComplex e2;
+} dpSu3vec;
+
+dpSu3vec make_dpSu3vec(const alignedDpComplex e0, const alignedDpComplex e1, const alignedDpComplex e2) {
+	return (dpSu3vec) {e0, e1, e2};
+}
+
+dpSu3vec dpSu3vecAdd(const dpSu3vec left, const dpSu3vec right) {
+	return make_dpSu3vec(
+		alignedDpComplexAdd(left.e0, right.e0),
+		alignedDpComplexAdd(left.e1, right.e1),
+		alignedDpComplexAdd(left.e2, right.e2)
+	);
+}
+
+__kernel void copyDpSu3vec(__global dpSu3vec * out, __global dpSu3vec * in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readDpSu3vec(__global dpSu3vec * out, __global dpSu3vec * in, const ulong elems)
+{
+	alignedDpComplex bla = make_alignedDpComplex(0.0f, 0.0f);
+	dpSu3vec tmp = make_dpSu3vec(bla, bla, bla);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = dpSu3vecAdd(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeDpSu3vec(__global dpSu3vec * out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		alignedDpComplex bla = make_alignedDpComplex(in, in);
+		out[i] = make_dpSu3vec(bla, bla, bla);
+	}
+}
+
+__kernel void copyDpSu3vecRestricted(__global dpSu3vec * const restrict out, __global const dpSu3vec * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readDpSu3vecRestricted(__global dpSu3vec * const restrict out, __global const dpSu3vec * const restrict in, const ulong elems)
+{
+	alignedDpComplex bla = make_alignedDpComplex(0.0f, 0.0f);
+	dpSu3vec tmp = make_dpSu3vec(bla, bla, bla);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = dpSu3vecAdd(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeDpSu3vecRestricted(__global dpSu3vec * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		alignedDpComplex bla = make_alignedDpComplex(in, in);
+		out[i] = make_dpSu3vec(bla, bla, bla);
+	}
+}
+
+typedef struct {
+	alignedDpComplex e0;
+	alignedDpComplex e1;
+	alignedDpComplex e2;
+} __attribute((aligned(16))) aligned16DpSu3vec;
+
+aligned16DpSu3vec make_aligned16DpSu3vec(const alignedDpComplex e0, const alignedDpComplex e1, const alignedDpComplex e2) {
+	return (aligned16DpSu3vec) {e0, e1, e2};
+}
+
+aligned16DpSu3vec aligned16DpSu3vecAdd(const aligned16DpSu3vec left, const aligned16DpSu3vec right) {
+	return make_aligned16DpSu3vec(
+		alignedDpComplexAdd(left.e0, right.e0),
+		alignedDpComplexAdd(left.e1, right.e1),
+		alignedDpComplexAdd(left.e2, right.e2)
+	);
+}
+
+__kernel void copyAligned16DpSu3vecRestricted(__global aligned16DpSu3vec * const restrict out, __global const aligned16DpSu3vec * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readAligned16DpSu3vecRestricted(__global aligned16DpSu3vec * const restrict out, __global const aligned16DpSu3vec * const restrict in, const ulong elems)
+{
+	alignedDpComplex bla = make_alignedDpComplex(0.0f, 0.0f);
+	aligned16DpSu3vec tmp = make_aligned16DpSu3vec(bla, bla, bla);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = aligned16DpSu3vecAdd(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeAligned16DpSu3vecRestricted(__global aligned16DpSu3vec * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		alignedDpComplex bla = make_alignedDpComplex(in, in);
+		out[i] = make_aligned16DpSu3vec(bla, bla, bla);
+	}
+}
+
+typedef struct {
+	alignedDpComplex e0;
+	alignedDpComplex e1;
+	alignedDpComplex e2;
+} __attribute((aligned(32))) aligned32DpSu3vec;
+
+aligned32DpSu3vec make_aligned32DpSu3vec(const alignedDpComplex e0, const alignedDpComplex e1, const alignedDpComplex e2) {
+	return (aligned32DpSu3vec) {e0, e1, e2};
+}
+
+aligned32DpSu3vec aligned32DpSu3vecAdd(const aligned32DpSu3vec left, const aligned32DpSu3vec right) {
+	return make_aligned32DpSu3vec(
+		alignedDpComplexAdd(left.e0, right.e0),
+		alignedDpComplexAdd(left.e1, right.e1),
+		alignedDpComplexAdd(left.e2, right.e2)
+	);
+}
+
+__kernel void copyAligned32DpSu3vecRestricted(__global aligned32DpSu3vec * const restrict out, __global const aligned32DpSu3vec * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readAligned32DpSu3vecRestricted(__global aligned32DpSu3vec * const restrict out, __global const aligned32DpSu3vec * const restrict in, const ulong elems)
+{
+	alignedDpComplex bla = make_alignedDpComplex(0.0f, 0.0f);
+	aligned32DpSu3vec tmp = make_aligned32DpSu3vec(bla, bla, bla);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = aligned32DpSu3vecAdd(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeAligned32DpSu3vecRestricted(__global aligned32DpSu3vec * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		alignedDpComplex bla = make_alignedDpComplex(in, in);
+		out[i] = make_aligned32DpSu3vec(bla, bla, bla);
+	}
+}
+
+dpSu3vec getDpSu3vecSOA(__global const alignedDpComplex * const restrict in, const size_t i)
+{
+	const size_t stride = get_global_size(0);
+
+	return make_dpSu3vec(in[0 * stride + i], in[ 1 * stride + i], in[ 2 * stride + i]);
+}
+
+void putDpSu3vecSOA(__global alignedDpComplex * const restrict out, const size_t i, const dpSu3vec val)
+{
+	const size_t stride = get_global_size(0);
+	out[ 0 * stride + i] = val.e0;
+	out[ 1 * stride + i] = val.e1;
+	out[ 2 * stride + i] = val.e2;
+}
+
+__kernel void copyDpSu3vecSOARestricted(__global alignedDpComplex * const restrict out, __global const alignedDpComplex * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		dpSu3vec tmp = getDpSu3vecSOA(in, i);
+		putDpSu3vecSOA(out, i, tmp);
+	}
+}
+__kernel void readDpSu3vecSOARestricted(__global alignedDpComplex * const restrict out, __global const alignedDpComplex * const restrict in, const ulong elems)
+{
+	alignedDpComplex bla = make_alignedDpComplex(0.0f, 0.0f);
+	dpSu3vec tmp = make_dpSu3vec(bla, bla, bla);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = dpSu3vecAdd(tmp, getDpSu3vecSOA(in, i));
+	}
+	putDpSu3vecSOA(out, get_global_id(0), tmp);
+}
+__kernel void writeDpSu3vecSOARestricted(__global alignedDpComplex * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		alignedDpComplex bla = make_alignedDpComplex(in, in);
+		dpSu3vec tmp = make_dpSu3vec(bla, bla, bla);
+		putDpSu3vecSOA(out, i, tmp);
+	}
+}
+
 #endif /* DOUBLE_ENABLED */
