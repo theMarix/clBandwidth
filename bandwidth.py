@@ -892,8 +892,9 @@ if __name__ == '__main__':
 	for kernel in runner.get_kernel_names():
 		try:
 			datapoints.append(runner.benchmark(kernel))
-		except cl.RuntimeError as ex:
+		except (cl.RuntimeError, cl.LogicError) as ex:
 			# On Apples OpenCL retrieving the profiling information sometimes seems to fail for no good reason
+			# In addition, sometimes the queue becomes invalid
 			print 'Error benchmarking {0}: {1}'.format(kernel, ex)
 
 
