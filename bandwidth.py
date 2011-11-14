@@ -228,6 +228,24 @@ class Runner:
 			 'copyDpSu3SOARestricted',
 			 'readDpSu3SOARestricted',
 			 'writeDpSu3SOARestricted',
+			 'copyDpSpinor',
+			 'readDpSpinor',
+			 'writeDpSpinor',
+			 'copyDpSpinorRestricted',
+			 'readDpSpinorRestricted',
+			 'writeDpSpinorRestricted',
+			 'copyAligned16DpSpinorRestricted',
+			 'readAligned16DpSpinorRestricted',
+			 'writeAligned16DpSpinorRestricted',
+			 'copyAligned32DpSpinorRestricted',
+			 'readAligned32DpSpinorRestricted',
+			 'writeAligned32DpSpinorRestricted',
+			 'copyDpSpinorSOARestricted',
+			 'readDpSpinorSOARestricted',
+			 'writeDpSpinorSOARestricted',
+			 'copyDpSpinorFullSOARestricted',
+			 'readDpSpinorFullSOARestricted',
+			 'writeDpSpinorFullSOARestricted',
 			])
 
 		return kernels
@@ -1039,6 +1057,97 @@ class Runner:
 				elems = mem_size / 144
 				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
 				bytes_transferred = elems * 144
+
+			elif kernelname == 'copyDpSpinor':
+				kernel = self.prg.copyDpSpinor;
+				elems = mem_size / 192
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 192 * 2
+			elif kernelname == 'readDpSpinor':
+				kernel = self.prg.readDpSpinor;
+				elems = mem_size / 192
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 192
+			elif kernelname == 'writeDpSpinor':
+				kernel = self.prg.writeDpSpinor;
+				elems = mem_size / 192
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 192
+			elif kernelname == 'copyDpSpinorRestricted':
+				kernel = self.prg.copyDpSpinorRestricted;
+				elems = mem_size / 192
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 192 * 2
+			elif kernelname == 'readDpSpinorRestricted':
+				kernel = self.prg.readDpSpinorRestricted;
+				elems = mem_size / 192
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 192
+			elif kernelname == 'writeDpSpinorRestricted':
+				kernel = self.prg.writeDpSpinorRestricted;
+				elems = mem_size / 192
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 192
+			elif kernelname == 'copyAligned16DpSpinorRestricted':
+				kernel = self.prg.copyAligned16DpSpinorRestricted;
+				elems = mem_size / 192
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 192 * 2
+			elif kernelname == 'readAligned16DpSpinorRestricted':
+				kernel = self.prg.readAligned16DpSpinorRestricted;
+				elems = mem_size / 192
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 192
+			elif kernelname == 'writeAligned16DpSpinorRestricted':
+				kernel = self.prg.writeAligned16DpSpinorRestricted;
+				elems = mem_size / 192
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 192
+			elif kernelname == 'copyAligned32DpSpinorRestricted':
+				kernel = self.prg.copyAligned32DpSpinorRestricted;
+				elems = mem_size / 192
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 192 * 2
+			elif kernelname == 'readAligned32DpSpinorRestricted':
+				kernel = self.prg.readAligned32DpSpinorRestricted;
+				elems = mem_size / 192
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 192
+			elif kernelname == 'writeAligned32DpSpinorRestricted':
+				kernel = self.prg.writeAligned32DpSpinorRestricted;
+				elems = mem_size / 192
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 192
+			elif kernelname == 'copyDpSpinorSOARestricted':
+				kernel = self.prg.copyDpSpinorSOARestricted;
+				elems = mem_size / 192
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 192 * 2
+			elif kernelname == 'readDpSpinorSOARestricted':
+				kernel = self.prg.readDpSpinorSOARestricted;
+				elems = mem_size / 192
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 192
+			elif kernelname == 'writeDpSpinorSOARestricted':
+				kernel = self.prg.writeDpSpinorSOARestricted;
+				elems = mem_size / 192
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 192
+			elif kernelname == 'copyDpSpinorFullSOARestricted':
+				kernel = self.prg.copyDpSpinorFullSOARestricted;
+				elems = mem_size / 192
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 192 * 2
+			elif kernelname == 'readDpSpinorFullSOARestricted':
+				kernel = self.prg.readDpSpinorFullSOARestricted;
+				elems = mem_size / 192
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 192
+			elif kernelname == 'writeDpSpinorFullSOARestricted':
+				kernel = self.prg.writeDpSpinorFullSOARestricted;
+				elems = mem_size / 192
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 192
 
 			else:
 				raise NameError( "Don't know how to run {0}".format(kernelname) )

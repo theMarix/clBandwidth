@@ -2023,4 +2023,271 @@ __kernel void writeDpSu3SOARestricted(__global alignedDpComplex * const restrict
 	}
 }
 
+
+/*
+ * Double precisoin Spinors
+ * We always base on aligned types, even if we don't explicitly align the struct
+ */
+
+typedef struct {
+	aligned16DpSu3vec e0;
+	aligned16DpSu3vec e1;
+	aligned16DpSu3vec e2;
+	aligned16DpSu3vec e3;
+} dpSpinor;
+
+dpSpinor make_dpSpinor(const aligned16DpSu3vec e0, const aligned16DpSu3vec e1, const aligned16DpSu3vec e2, const aligned16DpSu3vec e3)
+{
+	return (dpSpinor) {e0, e1, e2, e3};
+}
+
+dpSpinor dpSpinorAdd(const dpSpinor left, const dpSpinor right) {
+	return make_dpSpinor(
+		aligned16DpSu3vecAdd(left.e0, right.e0),
+		aligned16DpSu3vecAdd(left.e1, right.e1),
+		aligned16DpSu3vecAdd(left.e2, right.e2),
+		aligned16DpSu3vecAdd(left.e3, right.e3)
+	);
+}
+
+__kernel void copyDpSpinor(__global dpSpinor * out, __global dpSpinor * in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readDpSpinor(__global dpSpinor * out, __global dpSpinor * in, const ulong elems)
+{
+	alignedDpComplex bla = make_alignedDpComplex(0.0f, 0.0f);
+	aligned16DpSu3vec foo = make_aligned16DpSu3vec(bla, bla, bla);
+	dpSpinor tmp = make_dpSpinor(foo, foo, foo, foo);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = dpSpinorAdd(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeDpSpinor(__global dpSpinor * out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		alignedDpComplex bla = make_alignedDpComplex(in, in);
+		aligned16DpSu3vec foo = make_aligned16DpSu3vec(bla, bla, bla);
+		out[i] = make_dpSpinor(foo, foo, foo, foo);
+	}
+}
+
+__kernel void copyDpSpinorRestricted(__global dpSpinor * const restrict out, __global const dpSpinor * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readDpSpinorRestricted(__global dpSpinor * const restrict out, __global const dpSpinor * const restrict in, const ulong elems)
+{
+	alignedDpComplex bla = make_alignedDpComplex(0.0f, 0.0f);
+	aligned16DpSu3vec foo = make_aligned16DpSu3vec(bla, bla, bla);
+	dpSpinor tmp = make_dpSpinor(foo, foo, foo, foo);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = dpSpinorAdd(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeDpSpinorRestricted(__global dpSpinor * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		alignedDpComplex bla = make_alignedDpComplex(in, in);
+		aligned16DpSu3vec foo = make_aligned16DpSu3vec(bla, bla, bla);
+		out[i] = make_dpSpinor(foo, foo, foo, foo);
+	}
+}
+
+typedef struct {
+	aligned16DpSu3vec e0;
+	aligned16DpSu3vec e1;
+	aligned16DpSu3vec e2;
+	aligned16DpSu3vec e3;
+} __attribute((aligned(16))) aligned16DpSpinor;
+
+aligned16DpSpinor make_aligned16DpSpinor(const aligned16DpSu3vec e0, const aligned16DpSu3vec e1, const aligned16DpSu3vec e2, const aligned16DpSu3vec e3)
+{
+	return (aligned16DpSpinor) {e0, e1, e2, e3};
+}
+
+aligned16DpSpinor aligned16DpSpinorAdd(const aligned16DpSpinor left, const aligned16DpSpinor right) {
+	return make_aligned16DpSpinor(
+		aligned16DpSu3vecAdd(left.e0, right.e0),
+		aligned16DpSu3vecAdd(left.e1, right.e1),
+		aligned16DpSu3vecAdd(left.e2, right.e2),
+		aligned16DpSu3vecAdd(left.e3, right.e3)
+	);
+}
+
+__kernel void copyAligned16DpSpinorRestricted(__global aligned16DpSpinor * const restrict out, __global const aligned16DpSpinor * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readAligned16DpSpinorRestricted(__global aligned16DpSpinor * const restrict out, __global const aligned16DpSpinor * const restrict in, const ulong elems)
+{
+	alignedDpComplex bla = make_alignedDpComplex(0.0f, 0.0f);
+	aligned16DpSu3vec foo = make_aligned16DpSu3vec(bla, bla, bla);
+	aligned16DpSpinor tmp = make_aligned16DpSpinor(foo, foo, foo, foo);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = aligned16DpSpinorAdd(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeAligned16DpSpinorRestricted(__global aligned16DpSpinor * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		alignedDpComplex bla = make_alignedDpComplex(in, in);
+		aligned16DpSu3vec foo = make_aligned16DpSu3vec(bla, bla, bla);
+		out[i] = make_aligned16DpSpinor(foo, foo, foo, foo);
+	}
+}
+
+typedef struct {
+	aligned16DpSu3vec e0;
+	aligned16DpSu3vec e1;
+	aligned16DpSu3vec e2;
+	aligned16DpSu3vec e3;
+} __attribute((aligned(32))) aligned32DpSpinor;
+
+aligned32DpSpinor make_aligned32DpSpinor(const aligned16DpSu3vec e0, const aligned16DpSu3vec e1, const aligned16DpSu3vec e2, const aligned16DpSu3vec e3)
+{
+	return (aligned32DpSpinor) {e0, e1, e2, e3};
+}
+
+aligned32DpSpinor aligned32DpSpinorAdd(const aligned32DpSpinor left, const aligned32DpSpinor right) {
+	return make_aligned32DpSpinor(
+		aligned16DpSu3vecAdd(left.e0, right.e0),
+		aligned16DpSu3vecAdd(left.e1, right.e1),
+		aligned16DpSu3vecAdd(left.e2, right.e2),
+		aligned16DpSu3vecAdd(left.e3, right.e3)
+	);
+}
+
+__kernel void copyAligned32DpSpinorRestricted(__global aligned32DpSpinor * const restrict out, __global const aligned32DpSpinor * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readAligned32DpSpinorRestricted(__global aligned32DpSpinor * const restrict out, __global const aligned32DpSpinor * const restrict in, const ulong elems)
+{
+	alignedDpComplex bla = make_alignedDpComplex(0.0f, 0.0f);
+	aligned16DpSu3vec foo = make_aligned16DpSu3vec(bla, bla, bla);
+	aligned32DpSpinor tmp = make_aligned32DpSpinor(foo, foo, foo, foo);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = aligned32DpSpinorAdd(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeAligned32DpSpinorRestricted(__global aligned32DpSpinor * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		alignedDpComplex bla = make_alignedDpComplex(in, in);
+		aligned16DpSu3vec foo = make_aligned16DpSu3vec(bla, bla, bla);
+		out[i] = make_aligned32DpSpinor(foo, foo, foo, foo);
+	}
+}
+
+
+dpSpinor getDpSpinorSOA(__global const aligned16DpSu3vec * const restrict in, const size_t i)
+{
+	const size_t stride = get_global_size(0);
+
+	return make_dpSpinor(in[0 * stride + i], in[1 * stride + i], in[2 * stride + i], in[3 * stride + i]);
+}
+
+void putDpSpinorSOA(__global aligned16DpSu3vec * const restrict out, const size_t i, const dpSpinor val)
+{
+	const size_t stride = get_global_size(0);
+	out[0 * stride + i] = val.e0;
+	out[1 * stride + i] = val.e1;
+	out[2 * stride + i] = val.e2;
+	out[3 * stride + i] = val.e3;
+}
+
+__kernel void copyDpSpinorSOARestricted(__global aligned16DpSu3vec * const restrict out, __global const aligned16DpSu3vec * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		dpSpinor tmp = getDpSpinorSOA(in, i);
+		putDpSpinorSOA(out, i, tmp);
+	}
+}
+__kernel void readDpSpinorSOARestricted(__global aligned16DpSu3vec * const restrict out, __global const aligned16DpSu3vec * const restrict in, const ulong elems)
+{
+	alignedDpComplex bla = make_alignedDpComplex(0.0f, 0.0f);
+	aligned16DpSu3vec foo = make_aligned16DpSu3vec(bla, bla, bla);
+	dpSpinor tmp = make_dpSpinor(foo, foo, foo, foo);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = dpSpinorAdd(tmp, getDpSpinorSOA(in, i));
+	}
+	putDpSpinorSOA(out, get_global_id(0), tmp);
+}
+__kernel void writeDpSpinorSOARestricted(__global aligned16DpSu3vec * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		alignedDpComplex bla = make_alignedDpComplex(in, in);
+		aligned16DpSu3vec foo = make_aligned16DpSu3vec(bla, bla, bla);
+		dpSpinor tmp = make_dpSpinor(foo, foo, foo, foo);
+		putDpSpinorSOA(out, i, tmp);
+	}
+}
+
+dpSpinor getDpSpinorFullSOA(__global const alignedDpComplex * const restrict in, const size_t i)
+{
+	const size_t stride = get_global_size(0);
+
+	return make_dpSpinor(make_aligned16DpSu3vec(in[0 * stride + i], in[ 1 * stride + i], in[ 2 * stride + i]),
+                         make_aligned16DpSu3vec(in[3 * stride + i], in[ 4 * stride + i], in[ 5 * stride + i]),
+                         make_aligned16DpSu3vec(in[6 * stride + i], in[ 7 * stride + i], in[ 8 * stride + i]),
+                         make_aligned16DpSu3vec(in[9 * stride + i], in[10 * stride + i], in[11 * stride + i]));
+}
+
+void putDpSpinorFullSOA(__global alignedDpComplex * const restrict out, const size_t i, const dpSpinor val)
+{
+	const size_t stride = get_global_size(0);
+	out[ 0 * stride + i] = val.e0.e0;
+	out[ 1 * stride + i] = val.e0.e1;
+	out[ 2 * stride + i] = val.e0.e2;
+	out[ 3 * stride + i] = val.e1.e0;
+	out[ 4 * stride + i] = val.e1.e1;
+	out[ 5 * stride + i] = val.e1.e2;
+	out[ 6 * stride + i] = val.e2.e0;
+	out[ 7 * stride + i] = val.e2.e1;
+	out[ 8 * stride + i] = val.e2.e2;
+	out[ 9 * stride + i] = val.e3.e0;
+	out[10 * stride + i] = val.e3.e1;
+	out[11 * stride + i] = val.e3.e2;
+}
+
+__kernel void copyDpSpinorFullSOARestricted(__global alignedDpComplex * const restrict out, __global const alignedDpComplex * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		dpSpinor tmp = getDpSpinorFullSOA(in, i);
+		putDpSpinorFullSOA(out, i, tmp);
+	}
+}
+__kernel void readDpSpinorFullSOARestricted(__global alignedDpComplex * const restrict out, __global const alignedDpComplex * const restrict in, const ulong elems)
+{
+	alignedDpComplex bla = make_alignedDpComplex(0.0f, 0.0f);
+	aligned16DpSu3vec foo = make_aligned16DpSu3vec(bla, bla, bla);
+	dpSpinor tmp = make_dpSpinor(foo, foo, foo, foo);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = dpSpinorAdd(tmp, getDpSpinorFullSOA(in, i));
+	}
+	putDpSpinorFullSOA(out, get_global_id(0), tmp);
+}
+__kernel void writeDpSpinorFullSOARestricted(__global alignedDpComplex * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		alignedDpComplex bla = make_alignedDpComplex(in, in);
+		aligned16DpSu3vec foo = make_aligned16DpSu3vec(bla, bla, bla);
+		dpSpinor tmp = make_dpSpinor(foo, foo, foo, foo);
+		putDpSpinorFullSOA(out, i, tmp);
+	}
+}
+
 #endif /* DOUBLE_ENABLED */
