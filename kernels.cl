@@ -497,7 +497,7 @@ __kernel void writeSpSu3vecFromAlignedRestricted(__global spSu3vecFromAligned * 
 }
 
 /*
- * Single precisoin SU3
+ * Single precision SU3
  */
 
 typedef struct {
@@ -850,6 +850,482 @@ __kernel void writeAligned8SpSu3Restricted(__global alignedSpSu3 * const restric
 		out[i] = make_alignedSpSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
 	}
 }
+
+/*
+ * Single precision spinors
+ */
+
+typedef struct {
+	spSu3vec e0;
+	spSu3vec e1;
+	spSu3vec e2;
+	spSu3vec e3;
+} spSpinor;
+
+spSpinor make_spSpinor(const spSu3vec e0, const spSu3vec e1, const spSu3vec e2, const spSu3vec e3) {
+	return (spSpinor) {e0, e1, e2, e3};
+}
+spSpinor spSpinorAdd(const spSpinor left, const spSpinor right) {
+	return make_spSpinor(
+		spSu3vecAdd(left.e0, right.e0),
+		spSu3vecAdd(left.e1, right.e1),
+		spSu3vecAdd(left.e2, right.e2),
+		spSu3vecAdd(left.e3, right.e3)
+	);
+}
+
+__kernel void copySpSpinor(__global spSpinor * out, __global spSpinor * in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readSpSpinor(__global spSpinor * out, __global spSpinor * in, const ulong elems)
+{
+	spComplex bla = make_spComplex(0.0f, 0.0f);
+	spSu3vec foo = make_spSu3vec(bla, bla, bla);
+	spSpinor tmp = make_spSpinor(foo, foo, foo, foo);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = spSpinorAdd(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeSpSpinor(__global spSpinor * out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		spComplex bla = make_spComplex(in, in);
+		spSu3vec foo = make_spSu3vec(bla, bla, bla);
+		out[i] = make_spSpinor(foo, foo, foo, foo);
+	}
+}
+
+__kernel void copySpSpinorRestricted(__global spSpinor * const restrict out, __global const spSpinor * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readSpSpinorRestricted(__global spSpinor * const restrict out, __global const spSpinor * const restrict in, const ulong elems)
+{
+	spComplex bla = make_spComplex(0.0f, 0.0f);
+	spSu3vec foo = make_spSu3vec(bla, bla, bla);
+	spSpinor tmp = make_spSpinor(foo, foo, foo, foo);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = spSpinorAdd(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeSpSpinorRestricted(__global spSpinor * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		spComplex bla = make_spComplex(in, in);
+		spSu3vec foo = make_spSu3vec(bla, bla, bla);
+		out[i] = make_spSpinor(foo, foo, foo, foo);
+	}
+}
+
+spSpinor getSpSpinorSOA(__global const spSu3vec * const restrict in, const size_t i)
+{
+	const size_t stride = get_global_size(0);
+	return make_spSpinor(in[0 * stride + i], in[1 * stride + i], in[2 * stride + i], in[3 * stride + i]);
+}
+
+void putSpSpinorSOA(__global spSu3vec * const restrict out, const size_t i, const spSpinor val)
+{
+	const size_t stride = get_global_size(0);
+	out[0 * stride + i] = val.e0;
+	out[1 * stride + i] = val.e1;
+	out[2 * stride + i] = val.e2;
+	out[3 * stride + i] = val.e3;
+}
+
+__kernel void copySpSpinorSOARestricted(__global spSu3vec * const restrict out, __global const spSu3vec * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		spSpinor tmp = getSpSpinorSOA(in, i);
+		putSpSpinorSOA(out, i, tmp);
+	}
+}
+__kernel void readSpSpinorSOARestricted(__global spSu3vec * const restrict out, __global const spSu3vec * const restrict in, const ulong elems)
+{
+	spComplex bla = make_spComplex(0.0f, 0.0f);
+	spSu3vec foo = make_spSu3vec(bla, bla, bla);
+	spSpinor tmp = make_spSpinor(foo, foo, foo, foo);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = spSpinorAdd(tmp, getSpSpinorSOA(in, i));
+	}
+	putSpSpinorSOA(out, get_global_id(0), tmp);
+}
+__kernel void writeSpSpinorSOARestricted(__global spSu3vec * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		spComplex bla = make_spComplex(in, in);
+		spSu3vec foo = make_spSu3vec(bla, bla, bla);
+		spSpinor tmp = make_spSpinor(foo, foo, foo, foo);
+		putSpSpinorSOA(out, i, tmp);
+	}
+}
+
+spSpinor getSpSpinorFullSOA(__global const spComplex * const restrict in, const size_t i)
+{
+	const size_t stride = get_global_size(0);
+	return make_spSpinor(make_spSu3vec(in[0 * stride + i], in[ 1 * stride + i], in[ 2 * stride + i]),
+	                     make_spSu3vec(in[3 * stride + i], in[ 4 * stride + i], in[ 5 * stride + i]),
+	                     make_spSu3vec(in[6 * stride + i], in[ 7 * stride + i], in[ 8 * stride + i]),
+	                     make_spSu3vec(in[9 * stride + i], in[10 * stride + i], in[11 * stride + i]));
+}
+
+void putSpSpinorFullSOA(__global spComplex * const restrict out, const size_t i, const spSpinor val)
+{
+	const size_t stride = get_global_size(0);
+	out[ 0 * stride + i] = val.e0.e0;
+	out[ 1 * stride + i] = val.e0.e1;
+	out[ 2 * stride + i] = val.e0.e2;
+	out[ 3 * stride + i] = val.e1.e0;
+	out[ 4 * stride + i] = val.e1.e1;
+	out[ 5 * stride + i] = val.e1.e2;
+	out[ 6 * stride + i] = val.e2.e0;
+	out[ 7 * stride + i] = val.e2.e1;
+	out[ 8 * stride + i] = val.e2.e2;
+	out[ 9 * stride + i] = val.e3.e0;
+	out[10 * stride + i] = val.e3.e1;
+	out[11 * stride + i] = val.e3.e2;
+}
+
+__kernel void copySpSpinorFullSOARestricted(__global spComplex * const restrict out, __global const spComplex * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		spSpinor tmp = getSpSpinorFullSOA(in, i);
+		putSpSpinorFullSOA(out, i, tmp);
+	}
+}
+__kernel void readSpSpinorFullSOARestricted(__global spComplex * const restrict out, __global const spComplex * const restrict in, const ulong elems)
+{
+	spComplex bla = make_spComplex(0.0f, 0.0f);
+	spSu3vec foo = make_spSu3vec(bla, bla, bla);
+	spSpinor tmp = make_spSpinor(foo, foo, foo, foo);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = spSpinorAdd(tmp, getSpSpinorFullSOA(in, i));
+	}
+	putSpSpinorFullSOA(out, get_global_id(0), tmp);
+}
+__kernel void writeSpSpinorFullSOARestricted(__global spComplex * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		spComplex bla = make_spComplex(in, in);
+		spSu3vec foo = make_spSu3vec(bla, bla, bla);
+		spSpinor tmp = make_spSpinor(foo, foo, foo, foo);
+		putSpSpinorFullSOA(out, i, tmp);
+	}
+}
+
+spSpinor getSpSpinorViaLocal(__global const spSpinor * const restrict in, const size_t block, __local spSpinor * const restrict scratch)
+{
+	event_t event = async_work_group_copy((__local float2 *) scratch, (__global float2 *) &in[block * get_local_size(0)], get_local_size(0) * 12, 0);
+	wait_group_events(1, &event);
+	return scratch[get_local_id(0)];
+}
+void putSpSpinorViaLocal(__global spSpinor * const restrict out, const size_t block, const spSpinor val, __local spSpinor * const restrict scratch)
+{
+	scratch[get_local_id(0)] = val;
+	barrier(CLK_LOCAL_MEM_FENCE);
+	event_t event = async_work_group_copy((__global float2 *) &out[block * get_local_size(0)], (__local float2 *) scratch, get_local_size(0) * 12, 0);
+	wait_group_events(1, &event);
+}
+
+__kernel void copySpSpinorViaLocalRestricted(__global spSpinor * const restrict out, __global const spSpinor * const restrict in, const ulong elems, __local spSpinor * const restrict scratch)
+{
+	for(size_t i = get_group_id(0); i < elems / get_num_groups(0); i += get_num_groups(0)) {
+		spSpinor tmp = getSpSpinorViaLocal(in, i, scratch);
+		putSpSpinorViaLocal(out, i, tmp, scratch);
+	}
+}
+__kernel void readSpSpinorViaLocalRestricted(__global spSpinor * const restrict out, __global const spSpinor * const restrict in, const ulong elems, __local spSpinor * const restrict scratch)
+{
+	spComplex bla = make_spComplex(0.0f, 0.0f);
+	spSu3vec foo = make_spSu3vec(bla, bla, bla);
+	spSpinor tmp = make_spSpinor(foo, foo, foo, foo);
+	for(size_t i = get_group_id(0); i < elems / get_num_groups(0); i += get_num_groups(0)) {
+		tmp = spSpinorAdd(tmp, getSpSpinorViaLocal(in, i, scratch));
+	}
+	putSpSpinorViaLocal(out, get_global_id(0), tmp, scratch);
+}
+__kernel void writeSpSpinorViaLocalRestricted(__global spSpinor * const restrict out, const float in, const ulong elems, __local spSpinor * const restrict scratch)
+{
+	for(size_t i = get_group_id(0); i < elems / get_num_groups(0); i += get_num_groups(0)) {
+		spComplex bla = make_spComplex(in, in);
+		spSu3vec foo = make_spSu3vec(bla, bla, bla);
+		spSpinor tmp = make_spSpinor(foo, foo, foo, foo);
+		putSpSpinorViaLocal(out, i, tmp, scratch);
+	}
+}
+
+typedef struct {
+	aligned8SpSu3vec e0;
+	aligned8SpSu3vec e1;
+	aligned8SpSu3vec e2;
+	aligned8SpSu3vec e3;
+} spSpinorFromAligned;
+
+spSpinorFromAligned make_spSpinorFromAligned(const aligned8SpSu3vec e0, const aligned8SpSu3vec e1, const aligned8SpSu3vec e2, const aligned8SpSu3vec e3)
+{
+	return (spSpinorFromAligned) {e0, e1, e2, e3};
+}
+spSpinorFromAligned spSpinorFromAlignedAdd(const spSpinorFromAligned left, const spSpinorFromAligned right) {
+	return make_spSpinorFromAligned(
+		aligned8SpSu3vecAdd(left.e0, right.e0),
+		aligned8SpSu3vecAdd(left.e1, right.e1),
+		aligned8SpSu3vecAdd(left.e2, right.e2),
+		aligned8SpSu3vecAdd(left.e3, right.e3)
+	);
+}
+
+__kernel void copySpSpinorFromAlignedRestricted(__global spSpinorFromAligned * const restrict out, __global const spSpinorFromAligned * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readSpSpinorFromAlignedRestricted(__global spSpinorFromAligned * const restrict out, __global const spSpinorFromAligned * const restrict in, const ulong elems)
+{
+	spComplex bla = make_spComplex(0.0f, 0.0f);
+	aligned8SpSu3vec foo = make_aligned8SpSu3vec(bla, bla, bla);
+	spSpinorFromAligned tmp = make_spSpinorFromAligned(foo, foo, foo, foo);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = spSpinorFromAlignedAdd(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeSpSpinorFromAlignedRestricted(__global spSpinorFromAligned * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		spComplex bla = make_spComplex(in, in);
+		aligned8SpSu3vec foo = make_aligned8SpSu3vec(bla, bla, bla);
+		out[i] = make_spSpinorFromAligned(foo, foo, foo, foo);
+	}
+}
+
+spSpinorFromAligned getSpSpinorFromAlignedSOA(__global const aligned8SpSu3vec * const restrict in, const size_t i)
+{
+	const size_t stride = get_global_size(0);
+	return make_spSpinorFromAligned(in[0 * stride + i], in[1 * stride + i], in[2 * stride + i], in[3 * stride + i]);
+}
+
+void putSpSpinorFromAlignedSOA(__global aligned8SpSu3vec * const restrict out, const size_t i, const spSpinorFromAligned val)
+{
+	const size_t stride = get_global_size(0);
+	out[0 * stride + i] = val.e0;
+	out[1 * stride + i] = val.e1;
+	out[2 * stride + i] = val.e2;
+	out[3 * stride + i] = val.e3;
+}
+
+__kernel void copySpSpinorFromAlignedSOARestricted(__global aligned8SpSu3vec * const restrict out, __global const aligned8SpSu3vec * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		spSpinorFromAligned tmp = getSpSpinorFromAlignedSOA(in, i);
+		putSpSpinorFromAlignedSOA(out, i, tmp);
+	}
+}
+__kernel void readSpSpinorFromAlignedSOARestricted(__global aligned8SpSu3vec * const restrict out, __global const aligned8SpSu3vec * const restrict in, const ulong elems)
+{
+	spComplex bla = make_spComplex(0.0f, 0.0f);
+	aligned8SpSu3vec foo = make_aligned8SpSu3vec(bla, bla, bla);
+	spSpinorFromAligned tmp = make_spSpinorFromAligned(foo, foo, foo, foo);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = spSpinorFromAlignedAdd(tmp, getSpSpinorFromAlignedSOA(in, i));
+	}
+	putSpSpinorFromAlignedSOA(out, get_global_id(0), tmp);
+}
+__kernel void writeSpSpinorFromAlignedSOARestricted(__global aligned8SpSu3vec * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		spComplex bla = make_spComplex(in, in);
+		aligned8SpSu3vec foo = make_aligned8SpSu3vec(bla, bla, bla);
+		spSpinorFromAligned tmp = make_spSpinorFromAligned(foo, foo, foo, foo);
+		putSpSpinorFromAlignedSOA(out, i, tmp);
+	}
+}
+
+spSpinorFromAligned getSpSpinorFromAlignedViaLocal(__global const spSpinorFromAligned * const restrict in, const size_t block, __local spSpinorFromAligned * const restrict scratch)
+{
+	event_t event = async_work_group_copy((__local float2 *) scratch, (__global float2 *) &in[block * get_local_size(0)], get_local_size(0) * 12, 0);
+	wait_group_events(1, &event);
+	return scratch[get_local_id(0)];
+}
+void putSpSpinorFromAlignedViaLocal(__global spSpinorFromAligned * const restrict out, const size_t block, const spSpinorFromAligned val, __local spSpinorFromAligned * const restrict scratch)
+{
+	scratch[get_local_id(0)] = val;
+	barrier(CLK_LOCAL_MEM_FENCE);
+	event_t event = async_work_group_copy((__global float2 *) &out[block * get_local_size(0)], (__local float2 *) scratch, get_local_size(0) * 12, 0);
+	wait_group_events(1, &event);
+}
+
+__kernel void copySpSpinorFromAlignedViaLocalRestricted(__global spSpinorFromAligned * const restrict out, __global const spSpinorFromAligned * const restrict in, const ulong elems, __local spSpinorFromAligned * const restrict scratch)
+{
+	for(size_t i = get_group_id(0); i < elems / get_num_groups(0); i += get_num_groups(0)) {
+		spSpinorFromAligned tmp = getSpSpinorFromAlignedViaLocal(in, i, scratch);
+		putSpSpinorFromAlignedViaLocal(out, i, tmp, scratch);
+	}
+}
+__kernel void readSpSpinorFromAlignedViaLocalRestricted(__global spSpinorFromAligned * const restrict out, __global const spSpinorFromAligned * const restrict in, const ulong elems, __local spSpinorFromAligned * const restrict scratch)
+{
+	spComplex bla = make_spComplex(0.0f, 0.0f);
+	aligned8SpSu3vec foo = make_aligned8SpSu3vec(bla, bla, bla);
+	spSpinorFromAligned tmp = make_spSpinorFromAligned(foo, foo, foo, foo);
+	for(size_t i = get_group_id(0); i < elems / get_num_groups(0); i += get_num_groups(0)) {
+		tmp = spSpinorFromAlignedAdd(tmp, getSpSpinorFromAlignedViaLocal(in, i, scratch));
+	}
+	putSpSpinorFromAlignedViaLocal(out, get_global_id(0), tmp, scratch);
+}
+__kernel void writeSpSpinorFromAlignedViaLocalRestricted(__global spSpinorFromAligned * const restrict out, const float in, const ulong elems, __local spSpinorFromAligned * const restrict scratch)
+{
+	for(size_t i = get_group_id(0); i < elems / get_num_groups(0); i += get_num_groups(0)) {
+		spComplex bla = make_spComplex(in, in);
+		aligned8SpSu3vec foo = make_aligned8SpSu3vec(bla, bla, bla);
+		spSpinorFromAligned tmp = make_spSpinorFromAligned(foo, foo, foo, foo);
+		putSpSpinorFromAlignedViaLocal(out, i, tmp, scratch);
+	}
+}
+
+
+typedef struct {
+	aligned8SpSu3vec e0;
+	aligned8SpSu3vec e1;
+	aligned8SpSu3vec e2;
+	aligned8SpSu3vec e3;
+} __attribute__((aligned(8))) aligned8SpSpinor;
+
+aligned8SpSpinor make_aligned8SpSpinor(const aligned8SpSu3vec e0, const aligned8SpSu3vec e1, const aligned8SpSu3vec e2, const aligned8SpSu3vec e3) {
+	return (aligned8SpSpinor) {e0, e1, e2, e3};
+}
+
+aligned8SpSpinor aligned8SpSpinorAdd(const aligned8SpSpinor left, const aligned8SpSpinor right) {
+	return make_aligned8SpSpinor(
+		aligned8SpSu3vecAdd(left.e0, right.e0),
+		aligned8SpSu3vecAdd(left.e1, right.e1),
+		aligned8SpSu3vecAdd(left.e2, right.e2),
+		aligned8SpSu3vecAdd(left.e3, right.e3)
+	);
+}
+
+__kernel void copyAligned8SpSpinorRestricted(__global aligned8SpSpinor * const restrict out, __global const aligned8SpSpinor * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readAligned8SpSpinorRestricted(__global aligned8SpSpinor * const restrict out, __global const aligned8SpSpinor * const restrict in, const ulong elems)
+{
+	spComplex bla = make_spComplex(0.0f, 0.0f);
+	aligned8SpSu3vec foo = make_aligned8SpSu3vec(bla, bla, bla);
+	aligned8SpSpinor tmp = make_aligned8SpSpinor(foo, foo, foo, foo);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = aligned8SpSpinorAdd(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeAligned8SpSpinorRestricted(__global aligned8SpSpinor * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		spComplex bla = make_spComplex(in, in);
+		aligned8SpSu3vec foo = make_aligned8SpSu3vec(bla, bla, bla);
+		out[i] = make_aligned8SpSpinor(foo, foo, foo, foo);
+	}
+}
+
+
+typedef struct {
+	aligned8SpSu3vec e0;
+	aligned8SpSu3vec e1;
+	aligned8SpSu3vec e2;
+	aligned8SpSu3vec e3;
+} __attribute__((aligned(16))) aligned16SpSpinor;
+
+aligned16SpSpinor make_aligned16SpSpinor(const aligned8SpSu3vec e0, const aligned8SpSu3vec e1, const aligned8SpSu3vec e2, const aligned8SpSu3vec e3) {
+	return (aligned16SpSpinor) {e0, e1, e2, e3};
+}
+
+aligned16SpSpinor aligned16SpSpinorAdd(const aligned16SpSpinor left, const aligned16SpSpinor right) {
+	return make_aligned16SpSpinor(
+		aligned8SpSu3vecAdd(left.e0, right.e0),
+		aligned8SpSu3vecAdd(left.e1, right.e1),
+		aligned8SpSu3vecAdd(left.e2, right.e2),
+		aligned8SpSu3vecAdd(left.e3, right.e3)
+	);
+}
+
+__kernel void copyAligned16SpSpinorRestricted(__global aligned16SpSpinor * const restrict out, __global const aligned16SpSpinor * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readAligned16SpSpinorRestricted(__global aligned16SpSpinor * const restrict out, __global const aligned16SpSpinor * const restrict in, const ulong elems)
+{
+	spComplex bla = make_spComplex(0.0f, 0.0f);
+	aligned8SpSu3vec foo = make_aligned8SpSu3vec(bla, bla, bla);
+	aligned16SpSpinor tmp = make_aligned16SpSpinor(foo, foo, foo, foo);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = aligned16SpSpinorAdd(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeAligned16SpSpinorRestricted(__global aligned16SpSpinor * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		spComplex bla = make_spComplex(in, in);
+		aligned8SpSu3vec foo = make_aligned8SpSu3vec(bla, bla, bla);
+		out[i] = make_aligned16SpSpinor(foo, foo, foo, foo);
+	}
+}
+
+
+typedef struct {
+	aligned8SpSu3vec e0;
+	aligned8SpSu3vec e1;
+	aligned8SpSu3vec e2;
+	aligned8SpSu3vec e3;
+} __attribute__((aligned(32))) aligned32SpSpinor;
+
+aligned32SpSpinor make_aligned32SpSpinor(const aligned8SpSu3vec e0, const aligned8SpSu3vec e1, const aligned8SpSu3vec e2, const aligned8SpSu3vec e3) {
+	return (aligned32SpSpinor) {e0, e1, e2, e3};
+}
+
+aligned32SpSpinor aligned32SpSpinorAdd(const aligned32SpSpinor left, const aligned32SpSpinor right) {
+	return make_aligned32SpSpinor(
+		aligned8SpSu3vecAdd(left.e0, right.e0),
+		aligned8SpSu3vecAdd(left.e1, right.e1),
+		aligned8SpSu3vecAdd(left.e2, right.e2),
+		aligned8SpSu3vecAdd(left.e3, right.e3)
+	);
+}
+
+__kernel void copyAligned32SpSpinorRestricted(__global aligned32SpSpinor * const restrict out, __global const aligned32SpSpinor * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		out[i] = in[i];
+	}
+}
+__kernel void readAligned32SpSpinorRestricted(__global aligned32SpSpinor * const restrict out, __global const aligned32SpSpinor * const restrict in, const ulong elems)
+{
+	spComplex bla = make_spComplex(0.0f, 0.0f);
+	aligned8SpSu3vec foo = make_aligned8SpSu3vec(bla, bla, bla);
+	aligned32SpSpinor tmp = make_aligned32SpSpinor(foo, foo, foo, foo);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = aligned32SpSpinorAdd(tmp, in[i]);
+	}
+	out[get_global_id(0)] = tmp;
+}
+__kernel void writeAligned32SpSpinorRestricted(__global aligned32SpSpinor * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		spComplex bla = make_spComplex(in, in);
+		aligned8SpSu3vec foo = make_aligned8SpSu3vec(bla, bla, bla);
+		out[i] = make_aligned32SpSpinor(foo, foo, foo, foo);
+	}
+}
+
 
 /*
  * double kernels
