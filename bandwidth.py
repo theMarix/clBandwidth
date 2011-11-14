@@ -1016,5 +1016,10 @@ if __name__ == '__main__':
 			plt.bar(ind, bandwidths, align='center', yerr=errs, ecolor='black')
 		else:
 			plt.bar(ind, bandwidths, align='center')
+
+		# Avoid the error bars triggering the lower quadrant to show
+		ymin, ymax = plt.ylim()
+		plt.ylim(0, ymax)
+
 		plt.xticks(ind, xticks, rotation='vertical')
 		plt.show()
