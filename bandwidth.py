@@ -1228,6 +1228,7 @@ if __name__ == '__main__':
 	parser.add_option('-p', '--plot', action='store_true', default=False, help='Make a plot of the measurements')
 	parser.add_option('-e', '--plot-errorbars', action='store_true', default=False, help='Add error bars to the plot')
 	parser.add_option('-m', '--plot-marker', type=float, dest='plot_markers', action='append', metavar='GB/s', help='Add a marker to the plot at the given performance')
+	parser.add_option('-o', '--plot-file', metavar='FILE', help='File to store the plot in (Display if unset)')
 	parser.add_option('-g', '--global-threads', type=int, metavar='NUM', help='The number of global threads to use')
 	parser.add_option('-l', '--local-threads', type=int, metavar='NUM', help='The number of global threads to use')
 	parser.add_option('-s', '--mem-size', type=int, metavar='BYTE', help='Memory size in byte')
@@ -1289,4 +1290,8 @@ if __name__ == '__main__':
 		plt.ylim(0, ymax)
 
 		plt.xticks(ind, xticks, rotation='vertical')
-		plt.show()
+
+		if args.plot_file:
+			plt.savefig(args.plot_file)
+		else:
+			plt.show()
