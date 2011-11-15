@@ -214,6 +214,9 @@ class Runner:
 			 'copyDpSu3vecSOARestricted',
 			 'readDpSu3vecSOARestricted',
 			 'writeDpSu3vecSOARestricted',
+			 'copyDpSu3vecFullSOARestricted',
+			 'readDpSu3vecFullSOARestricted',
+			 'writeDpSu3vecFullSOARestricted',
 			 'copyDpSu3',
 			 'readDpSu3',
 			 'writeDpSu3',
@@ -229,6 +232,9 @@ class Runner:
 			 'copyDpSu3SOARestricted',
 			 'readDpSu3SOARestricted',
 			 'writeDpSu3SOARestricted',
+			 'copyDpSu3FullSOARestricted',
+			 'readDpSu3FullSOARestricted',
+			 'writeDpSu3FullSOARestricted',
 			 'copyDpSpinor',
 			 'readDpSpinor',
 			 'writeDpSpinor',
@@ -247,6 +253,9 @@ class Runner:
 			 'copyDpSpinorFullSOARestricted',
 			 'readDpSpinorFullSOARestricted',
 			 'writeDpSpinorFullSOARestricted',
+			 'copyDpSpinorFullestSOARestricted',
+			 'readDpSpinorFullestSOARestricted',
+			 'writeDpSpinorFullestSOARestricted',
 			])
 
 		return kernels
@@ -984,6 +993,21 @@ class Runner:
 				elems = mem_size / 48
 				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
 				bytes_transferred = elems * 48
+			elif kernelname == 'copyDpSu3vecFullSOARestricted':
+				kernel = self.prg.copyDpSu3vecFullSOARestricted;
+				elems = mem_size / 48
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 48 * 2
+			elif kernelname == 'readDpSu3vecFullSOARestricted':
+				kernel = self.prg.readDpSu3vecFullSOARestricted;
+				elems = mem_size / 48
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 48
+			elif kernelname == 'writeDpSu3vecFullSOARestricted':
+				kernel = self.prg.writeDpSu3vecFullSOARestricted;
+				elems = mem_size / 48
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 48
 
 			elif kernelname == 'copyDpSu3':
 				kernel = self.prg.copyDpSu3;
@@ -1057,6 +1081,21 @@ class Runner:
 				bytes_transferred = (elems + global_threads) * 144
 			elif kernelname == 'writeDpSu3SOARestricted':
 				kernel = self.prg.writeDpSu3SOARestricted;
+				elems = mem_size / 144
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 144
+			elif kernelname == 'copyDpSu3FullSOARestricted':
+				kernel = self.prg.copyDpSu3FullSOARestricted;
+				elems = mem_size / 144
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 144 * 2
+			elif kernelname == 'readDpSu3FullSOARestricted':
+				kernel = self.prg.readDpSu3FullSOARestricted;
+				elems = mem_size / 144
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 144
+			elif kernelname == 'writeDpSu3FullSOARestricted':
+				kernel = self.prg.writeDpSu3FullSOARestricted;
 				elems = mem_size / 144
 				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
 				bytes_transferred = elems * 144
@@ -1148,6 +1187,21 @@ class Runner:
 				bytes_transferred = (elems + global_threads) * 192
 			elif kernelname == 'writeDpSpinorFullSOARestricted':
 				kernel = self.prg.writeDpSpinorFullSOARestricted;
+				elems = mem_size / 192
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
+				bytes_transferred = elems * 192
+			elif kernelname == 'copyDpSpinorFullestSOARestricted':
+				kernel = self.prg.copyDpSpinorFullestSOARestricted;
+				elems = mem_size / 192
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = elems * 192 * 2
+			elif kernelname == 'readDpSpinorFullestSOARestricted':
+				kernel = self.prg.readDpSpinorFullestSOARestricted;
+				elems = mem_size / 192
+				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf, np.uint64(elems))
+				bytes_transferred = (elems + global_threads) * 192
+			elif kernelname == 'writeDpSpinorFullestSOARestricted':
+				kernel = self.prg.writeDpSpinorFullestSOARestricted;
 				elems = mem_size / 192
 				event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, np.float32(1.), np.uint64(elems))
 				bytes_transferred = elems * 192

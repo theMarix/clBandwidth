@@ -1793,6 +1793,51 @@ __kernel void writeDpSu3vecSOARestricted(__global alignedDpComplex * const restr
 }
 
 
+dpSu3vec getDpSu3vecFullSOA(__global const double * const restrict in, const size_t i)
+{
+	const size_t stride = get_global_size(0);
+
+	return make_dpSu3vec(make_alignedDpComplex(in[0 * stride + i], in[1 * stride + i]),
+	                     make_alignedDpComplex(in[2 * stride + i], in[3 * stride + i]),
+	                     make_alignedDpComplex(in[4 * stride + i], in[5 * stride + i]));
+}
+void putDpSu3vecFullSOA(__global double * const restrict out, const size_t i, const dpSu3vec val)
+{
+	const size_t stride = get_global_size(0);
+	out[ 0 * stride + i] = val.e0.re;
+	out[ 1 * stride + i] = val.e0.im;
+	out[ 2 * stride + i] = val.e1.re;
+	out[ 3 * stride + i] = val.e1.im;
+	out[ 4 * stride + i] = val.e2.re;
+	out[ 5 * stride + i] = val.e2.im;
+}
+
+__kernel void copyDpSu3vecFullSOARestricted(__global double * const restrict out, __global const double * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		dpSu3vec tmp = getDpSu3vecFullSOA(in, i);
+		putDpSu3vecFullSOA(out, i, tmp);
+	}
+}
+__kernel void readDpSu3vecFullSOARestricted(__global double * const restrict out, __global const double * const restrict in, const ulong elems)
+{
+	alignedDpComplex bla = make_alignedDpComplex(0.0f, 0.0f);
+	dpSu3vec tmp = make_dpSu3vec(bla, bla, bla);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = dpSu3vecAdd(tmp, getDpSu3vecFullSOA(in, i));
+	}
+	putDpSu3vecFullSOA(out, get_global_id(0), tmp);
+}
+__kernel void writeDpSu3vecFullSOARestricted(__global double * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		alignedDpComplex bla = make_alignedDpComplex(in, in);
+		dpSu3vec tmp = make_dpSu3vec(bla, bla, bla);
+		putDpSu3vecFullSOA(out, i, tmp);
+	}
+}
+
+
 /*
  * Double precisoin SU3 matrices
  * We always base on aligned types, even if we don't explicitly align the struct
@@ -2024,6 +2069,69 @@ __kernel void writeDpSu3SOARestricted(__global alignedDpComplex * const restrict
 }
 
 
+dpSu3 getDpSu3FullSOA(__global const double * const restrict in, const size_t i)
+{
+	const size_t stride = get_global_size(0);
+
+	return make_dpSu3(make_alignedDpComplex(in[ 0 * stride + i], in[ 1 * stride + i]),
+                      make_alignedDpComplex(in[ 2 * stride + i], in[ 3 * stride + i]),
+                      make_alignedDpComplex(in[ 4 * stride + i], in[ 5 * stride + i]),
+                      make_alignedDpComplex(in[ 6 * stride + i], in[ 7 * stride + i]),
+                      make_alignedDpComplex(in[ 8 * stride + i], in[ 9 * stride + i]),
+                      make_alignedDpComplex(in[10 * stride + i], in[11 * stride + i]),
+                      make_alignedDpComplex(in[12 * stride + i], in[13 * stride + i]),
+                      make_alignedDpComplex(in[14 * stride + i], in[15 * stride + i]),
+                      make_alignedDpComplex(in[16 * stride + i], in[17 * stride + i]));
+}
+void putDpSu3FullSOA(__global double * const restrict out, const size_t i, const dpSu3 val)
+{
+	const size_t stride = get_global_size(0);
+	out[ 0 * stride + i] = val.e00.re;
+	out[ 1 * stride + i] = val.e00.im;
+	out[ 2 * stride + i] = val.e01.re;
+	out[ 3 * stride + i] = val.e01.im;
+	out[ 4 * stride + i] = val.e02.re;
+	out[ 5 * stride + i] = val.e02.im;
+	out[ 6 * stride + i] = val.e10.re;
+	out[ 7 * stride + i] = val.e10.im;
+	out[ 8 * stride + i] = val.e11.re;
+	out[ 9 * stride + i] = val.e11.im;
+	out[10 * stride + i] = val.e12.re;
+	out[11 * stride + i] = val.e12.im;
+	out[12 * stride + i] = val.e20.re;
+	out[13 * stride + i] = val.e20.im;
+	out[14 * stride + i] = val.e21.re;
+	out[15 * stride + i] = val.e21.im;
+	out[16 * stride + i] = val.e22.re;
+	out[17 * stride + i] = val.e22.im;
+}
+
+__kernel void copyDpSu3FullSOARestricted(__global double * const restrict out, __global const double * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		dpSu3 tmp = getDpSu3FullSOA(in, i);
+		putDpSu3FullSOA(out, i, tmp);
+	}
+}
+__kernel void readDpSu3FullSOARestricted(__global double * const restrict out, __global const double * const restrict in, const ulong elems)
+{
+	alignedDpComplex bla = make_alignedDpComplex(0.0f, 0.0f);
+	dpSu3 tmp = make_dpSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = dpSu3Add(tmp, getDpSu3FullSOA(in, i));
+	}
+	putDpSu3FullSOA(out, get_global_id(0), tmp);
+}
+__kernel void writeDpSu3FullSOARestricted(__global double * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		alignedDpComplex bla = make_alignedDpComplex(in, in);
+		dpSu3 tmp = make_dpSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
+		putDpSu3FullSOA(out, i, tmp);
+	}
+}
+
+
 /*
  * Double precisoin Spinors
  * We always base on aligned types, even if we don't explicitly align the struct
@@ -2245,7 +2353,6 @@ dpSpinor getDpSpinorFullSOA(__global const alignedDpComplex * const restrict in,
                          make_aligned16DpSu3vec(in[6 * stride + i], in[ 7 * stride + i], in[ 8 * stride + i]),
                          make_aligned16DpSu3vec(in[9 * stride + i], in[10 * stride + i], in[11 * stride + i]));
 }
-
 void putDpSpinorFullSOA(__global alignedDpComplex * const restrict out, const size_t i, const dpSpinor val)
 {
 	const size_t stride = get_global_size(0);
@@ -2287,6 +2394,79 @@ __kernel void writeDpSpinorFullSOARestricted(__global alignedDpComplex * const r
 		aligned16DpSu3vec foo = make_aligned16DpSu3vec(bla, bla, bla);
 		dpSpinor tmp = make_dpSpinor(foo, foo, foo, foo);
 		putDpSpinorFullSOA(out, i, tmp);
+	}
+}
+
+dpSpinor getDpSpinorFullestSOA(__global const double * const restrict in, const size_t i)
+{
+	const size_t stride = get_global_size(0);
+
+	return make_dpSpinor(make_aligned16DpSu3vec(make_alignedDpComplex(in[ 0 * stride + i], in[ 1 * stride + i]),
+	                                            make_alignedDpComplex(in[ 2 * stride + i], in[ 3 * stride + i]),
+	                                            make_alignedDpComplex(in[ 4 * stride + i], in[ 5 * stride + i])),
+	                     make_aligned16DpSu3vec(make_alignedDpComplex(in[ 6 * stride + i], in[ 7 * stride + i]),
+	                                            make_alignedDpComplex(in[ 8 * stride + i], in[ 9 * stride + i]),
+	                                            make_alignedDpComplex(in[10 * stride + i], in[11 * stride + i])),
+	                     make_aligned16DpSu3vec(make_alignedDpComplex(in[12 * stride + i], in[13 * stride + i]),
+	                                            make_alignedDpComplex(in[14 * stride + i], in[15 * stride + i]),
+	                                            make_alignedDpComplex(in[16 * stride + i], in[17 * stride + i])),
+	                     make_aligned16DpSu3vec(make_alignedDpComplex(in[18 * stride + i], in[19 * stride + i]),
+	                                            make_alignedDpComplex(in[20 * stride + i], in[21 * stride + i]),
+	                                            make_alignedDpComplex(in[22 * stride + i], in[23 * stride + i])));
+}
+void putDpSpinorFullestSOA(__global double * const restrict out, const size_t i, const dpSpinor val)
+{
+	const size_t stride = get_global_size(0);
+	out[ 0 * stride + i] = val.e0.e0.re;
+	out[ 1 * stride + i] = val.e0.e0.im;
+	out[ 2 * stride + i] = val.e0.e1.re;
+	out[ 3 * stride + i] = val.e0.e1.im;
+	out[ 4 * stride + i] = val.e0.e2.re;
+	out[ 5 * stride + i] = val.e0.e2.im;
+	out[ 6 * stride + i] = val.e1.e0.re;
+	out[ 7 * stride + i] = val.e1.e0.im;
+	out[ 8 * stride + i] = val.e1.e1.re;
+	out[ 9 * stride + i] = val.e1.e1.im;
+	out[10 * stride + i] = val.e1.e2.re;
+	out[11 * stride + i] = val.e1.e2.im;
+	out[12 * stride + i] = val.e2.e0.re;
+	out[13 * stride + i] = val.e2.e0.im;
+	out[14 * stride + i] = val.e2.e1.re;
+	out[15 * stride + i] = val.e2.e1.im;
+	out[16 * stride + i] = val.e2.e2.re;
+	out[17 * stride + i] = val.e2.e2.im;
+	out[18 * stride + i] = val.e3.e0.re;
+	out[19 * stride + i] = val.e3.e0.im;
+	out[20 * stride + i] = val.e3.e1.re;
+	out[21 * stride + i] = val.e3.e1.im;
+	out[22 * stride + i] = val.e3.e2.re;
+	out[23 * stride + i] = val.e3.e2.im;
+}
+
+__kernel void copyDpSpinorFullestSOARestricted(__global double * const restrict out, __global const double * const restrict in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		dpSpinor tmp = getDpSpinorFullestSOA(in, i);
+		putDpSpinorFullestSOA(out, i, tmp);
+	}
+}
+__kernel void readDpSpinorFullestSOARestricted(__global double * const restrict out, __global const double * const restrict in, const ulong elems)
+{
+	alignedDpComplex bla = make_alignedDpComplex(0.0f, 0.0f);
+	aligned16DpSu3vec foo = make_aligned16DpSu3vec(bla, bla, bla);
+	dpSpinor tmp = make_dpSpinor(foo, foo, foo, foo);
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		tmp = dpSpinorAdd(tmp, getDpSpinorFullestSOA(in, i));
+	}
+	putDpSpinorFullestSOA(out, get_global_id(0), tmp);
+}
+__kernel void writeDpSpinorFullestSOARestricted(__global double * const restrict out, const float in, const ulong elems)
+{
+	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
+		alignedDpComplex bla = make_alignedDpComplex(in, in);
+		aligned16DpSu3vec foo = make_aligned16DpSu3vec(bla, bla, bla);
+		dpSpinor tmp = make_dpSpinor(foo, foo, foo, foo);
+		putDpSpinorFullestSOA(out, i, tmp);
 	}
 }
 
