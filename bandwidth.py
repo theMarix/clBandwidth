@@ -32,7 +32,7 @@ DataPoint = namedtuple('DataPoint', 'kernel global_threads local_threads bytes_t
 
 class Runner:
 
-	def __init__(self, device = None, local_threads = LOCAL_THREADS, global_threads = GLOBAL_THREADS):
+	def __init__(self, device = None, local_threads = LOCAL_THREADS, global_threads = GLOBAL_THREADS, max_mem_size = MAX_MEM_SIZE):
 		if device != None:
 			platforms = cl.get_platforms()
 			if len(platforms) > 1:
@@ -54,11 +54,12 @@ class Runner:
 		fstr = "".join(f.readlines())
 		self.prg = cl.Program(self.ctx, fstr).build()
 
-		self.in_buf = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY, MAX_MEM_SIZE)
-		self.out_buf = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, MAX_MEM_SIZE)
+		self.in_buf = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY, max_mem_size)
+		self.out_buf = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, max_mem_size)
 
 		self.local_threads = local_threads
 		self.global_threads = global_threads
+		self.max_mem_size = max_mem_size
 
 	def hasDoublePrecisionSupport(self):
 		extensions = self.device.extensions
@@ -250,7 +251,7 @@ class Runner:
 
 		return kernels
 
-	def benchmark(self, kernelname, mem_size = MAX_MEM_SIZE, global_threads = None, local_threads = None):
+	def benchmark(self, kernelname, mem_size = None, global_threads = None, local_threads = None):
 		BENCH_RUNS = 10
 		WARMUP_RUNS = 2
 
@@ -258,6 +259,8 @@ class Runner:
 			global_threads = self.global_threads
 		if not local_threads:
 			local_threads = self.local_threads
+		if not mem_size:
+			mem_size = self.max_mem_size
 
 		events = []
 		for i in range(BENCH_RUNS + WARMUP_RUNS):
@@ -1173,6 +1176,7 @@ if __name__ == '__main__':
 	parser.add_option('-m', '--plot-marker', type=float, dest='plot_markers', action='append', metavar='GB/s', help='Add a marker to the plot at the given performance')
 	parser.add_option('-g', '--global-threads', type=int, metavar='NUM', help='The number of global threads to use')
 	parser.add_option('-l', '--local-threads', type=int, metavar='NUM', help='The number of global threads to use')
+	parser.add_option('-s', '--mem-size', type=int, metavar='BYTE', help='Memory size in byte')
 
 	(args, rem) = parser.parse_args()
 
@@ -1183,6 +1187,8 @@ if __name__ == '__main__':
 		runner_args['global_threads'] = args.global_threads
 	if args.local_threads != None:
 		runner_args['local_threads'] = args.local_threads
+	if args.mem_size != None:
+		runner_args['max_mem_size'] = args.mem_size
 
 	runner = Runner(**runner_args)
 
