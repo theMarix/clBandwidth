@@ -1271,7 +1271,9 @@ if __name__ == '__main__':
 			errs = map(lambda p: p.time_std / p.time * p.bandwidth, datapoints)
 		ind = np.arange(len(datapoints)) + 0.5
 
-		plt.figure(figsize=(16,12))
+		print len(datapoints)
+
+		plt.figure(figsize=(2 + len(datapoints) * .25,12))
 		plt.axes([0.125,.4,.775,.5])
 		plt.title('Global Memory Bandwidth')
 		plt.ylabel('GB/s')
