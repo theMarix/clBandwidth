@@ -574,17 +574,15 @@ __kernel void writeSpSu3Restricted(__global spSu3 * const restrict out, const fl
 	}
 }
 
-spSu3 getSpSu3SOA(__global const spComplex * const restrict in, const size_t i)
+spSu3 getSpSu3SOA(__global const spComplex * const restrict in, const size_t i, const size_t stride)
 {
-	const size_t stride = get_global_size(0);
 	return make_spSu3(in[0 * stride + i], in[1 * stride + i], in[2 * stride + i],
 	                  in[3 * stride + i], in[4 * stride + i], in[5 * stride + i],
 	                  in[6 * stride + i], in[7 * stride + i], in[8 * stride + i]);
 }
 
-void putSpSu3SOA(__global spComplex * const restrict out, const size_t i, const spSu3 val)
+void putSpSu3SOA(__global spComplex * const restrict out, const size_t i, const spSu3 val, const size_t stride)
 {
-	const size_t stride = get_global_size(0);
 	out[0 * stride + i] = val.e00;
 	out[1 * stride + i] = val.e01;
 	out[2 * stride + i] = val.e02;
@@ -599,8 +597,8 @@ void putSpSu3SOA(__global spComplex * const restrict out, const size_t i, const 
 __kernel void copySpSu3SOARestricted(__global spComplex * const restrict out, __global const spComplex * const restrict in, const ulong elems)
 {
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
-		spSu3 tmp = getSpSu3SOA(in, i);
-		putSpSu3SOA(out, i, tmp);
+		spSu3 tmp = getSpSu3SOA(in, i, elems);
+		putSpSu3SOA(out, i, tmp, elems);
 	}
 }
 __kernel void readSpSu3SOARestricted(__global spComplex * const restrict out, __global const spComplex * const restrict in, const ulong elems)
@@ -608,16 +606,16 @@ __kernel void readSpSu3SOARestricted(__global spComplex * const restrict out, __
 	spComplex bla = make_spComplex(0.0f, 0.0f);
 	spSu3 tmp = make_spSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
-		tmp = spSu3Add(tmp, getSpSu3SOA(in, i));
+		tmp = spSu3Add(tmp, getSpSu3SOA(in, i, elems));
 	}
-	putSpSu3SOA(out, get_global_id(0), tmp);
+	putSpSu3SOA(out, get_global_id(0), tmp, elems);
 }
 __kernel void writeSpSu3SOARestricted(__global spComplex * const restrict out, const float in, const ulong elems)
 {
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
 		spComplex bla = make_spComplex(in, in);
 		spSu3 tmp = make_spSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
-		putSpSu3SOA(out, i, tmp);
+		putSpSu3SOA(out, i, tmp, elems);
 	}
 }
 
@@ -713,17 +711,15 @@ __kernel void writeSpSu3FromAlignedRestricted(__global spSu3FromAligned * const 
 	}
 }
 
-spSu3FromAligned getSpSu3FromAlignedSOA(__global const alignedSpComplex * const restrict in, const size_t i)
+spSu3FromAligned getSpSu3FromAlignedSOA(__global const alignedSpComplex * const restrict in, const size_t i, const size_t stride)
 {
-	const size_t stride = get_global_size(0);
 	return make_spSu3FromAligned(in[0 * stride + i], in[1 * stride + i], in[2 * stride + i],
 	                  in[3 * stride + i], in[4 * stride + i], in[5 * stride + i],
 	                  in[6 * stride + i], in[7 * stride + i], in[8 * stride + i]);
 }
 
-void putSpSu3FromAlignedSOA(__global alignedSpComplex * const restrict out, const size_t i, const spSu3FromAligned val)
+void putSpSu3FromAlignedSOA(__global alignedSpComplex * const restrict out, const size_t i, const spSu3FromAligned val, const size_t stride)
 {
-	const size_t stride = get_global_size(0);
 	out[0 * stride + i] = val.e00;
 	out[1 * stride + i] = val.e01;
 	out[2 * stride + i] = val.e02;
@@ -738,8 +734,8 @@ void putSpSu3FromAlignedSOA(__global alignedSpComplex * const restrict out, cons
 __kernel void copySpSu3FromAlignedSOARestricted(__global alignedSpComplex * const restrict out, __global const alignedSpComplex * const restrict in, const ulong elems)
 {
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
-		spSu3FromAligned tmp = getSpSu3FromAlignedSOA(in, i);
-		putSpSu3FromAlignedSOA(out, i, tmp);
+		spSu3FromAligned tmp = getSpSu3FromAlignedSOA(in, i, elems);
+		putSpSu3FromAlignedSOA(out, i, tmp, elems);
 	}
 }
 __kernel void readSpSu3FromAlignedSOARestricted(__global alignedSpComplex * const restrict out, __global const alignedSpComplex * const restrict in, const ulong elems)
@@ -747,16 +743,16 @@ __kernel void readSpSu3FromAlignedSOARestricted(__global alignedSpComplex * cons
 	alignedSpComplex bla = make_alignedSpComplex(0.0f, 0.0f);
 	spSu3FromAligned tmp = make_spSu3FromAligned(bla, bla, bla, bla, bla, bla, bla, bla, bla);
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
-		tmp = spSu3FromAlignedAdd(tmp, getSpSu3FromAlignedSOA(in, i));
+		tmp = spSu3FromAlignedAdd(tmp, getSpSu3FromAlignedSOA(in, i, elems));
 	}
-	putSpSu3FromAlignedSOA(out, get_global_id(0), tmp);
+	putSpSu3FromAlignedSOA(out, get_global_id(0), tmp, elems);
 }
 __kernel void writeSpSu3FromAlignedSOARestricted(__global alignedSpComplex * const restrict out, const float in, const ulong elems)
 {
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
 		alignedSpComplex bla = make_alignedSpComplex(in, in);
 		spSu3FromAligned tmp = make_spSu3FromAligned(bla, bla, bla, bla, bla, bla, bla, bla, bla);
-		putSpSu3FromAlignedSOA(out, i, tmp);
+		putSpSu3FromAlignedSOA(out, i, tmp, elems);
 	}
 }
 
@@ -924,15 +920,13 @@ __kernel void writeSpSpinorRestricted(__global spSpinor * const restrict out, co
 	}
 }
 
-spSpinor getSpSpinorSOA(__global const spSu3vec * const restrict in, const size_t i)
+spSpinor getSpSpinorSOA(__global const spSu3vec * const restrict in, const size_t i, const size_t stride)
 {
-	const size_t stride = get_global_size(0);
 	return make_spSpinor(in[0 * stride + i], in[1 * stride + i], in[2 * stride + i], in[3 * stride + i]);
 }
 
-void putSpSpinorSOA(__global spSu3vec * const restrict out, const size_t i, const spSpinor val)
+void putSpSpinorSOA(__global spSu3vec * const restrict out, const size_t i, const spSpinor val, const size_t stride)
 {
-	const size_t stride = get_global_size(0);
 	out[0 * stride + i] = val.e0;
 	out[1 * stride + i] = val.e1;
 	out[2 * stride + i] = val.e2;
@@ -942,8 +936,8 @@ void putSpSpinorSOA(__global spSu3vec * const restrict out, const size_t i, cons
 __kernel void copySpSpinorSOARestricted(__global spSu3vec * const restrict out, __global const spSu3vec * const restrict in, const ulong elems)
 {
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
-		spSpinor tmp = getSpSpinorSOA(in, i);
-		putSpSpinorSOA(out, i, tmp);
+		spSpinor tmp = getSpSpinorSOA(in, i, elems);
+		putSpSpinorSOA(out, i, tmp, elems);
 	}
 }
 __kernel void readSpSpinorSOARestricted(__global spSu3vec * const restrict out, __global const spSu3vec * const restrict in, const ulong elems)
@@ -952,9 +946,9 @@ __kernel void readSpSpinorSOARestricted(__global spSu3vec * const restrict out, 
 	spSu3vec foo = make_spSu3vec(bla, bla, bla);
 	spSpinor tmp = make_spSpinor(foo, foo, foo, foo);
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
-		tmp = spSpinorAdd(tmp, getSpSpinorSOA(in, i));
+		tmp = spSpinorAdd(tmp, getSpSpinorSOA(in, i, elems));
 	}
-	putSpSpinorSOA(out, get_global_id(0), tmp);
+	putSpSpinorSOA(out, get_global_id(0), tmp, elems);
 }
 __kernel void writeSpSpinorSOARestricted(__global spSu3vec * const restrict out, const float in, const ulong elems)
 {
@@ -962,22 +956,20 @@ __kernel void writeSpSpinorSOARestricted(__global spSu3vec * const restrict out,
 		spComplex bla = make_spComplex(in, in);
 		spSu3vec foo = make_spSu3vec(bla, bla, bla);
 		spSpinor tmp = make_spSpinor(foo, foo, foo, foo);
-		putSpSpinorSOA(out, i, tmp);
+		putSpSpinorSOA(out, i, tmp, elems);
 	}
 }
 
-spSpinor getSpSpinorFullSOA(__global const spComplex * const restrict in, const size_t i)
+spSpinor getSpSpinorFullSOA(__global const spComplex * const restrict in, const size_t i, const size_t stride)
 {
-	const size_t stride = get_global_size(0);
 	return make_spSpinor(make_spSu3vec(in[0 * stride + i], in[ 1 * stride + i], in[ 2 * stride + i]),
 	                     make_spSu3vec(in[3 * stride + i], in[ 4 * stride + i], in[ 5 * stride + i]),
 	                     make_spSu3vec(in[6 * stride + i], in[ 7 * stride + i], in[ 8 * stride + i]),
 	                     make_spSu3vec(in[9 * stride + i], in[10 * stride + i], in[11 * stride + i]));
 }
 
-void putSpSpinorFullSOA(__global spComplex * const restrict out, const size_t i, const spSpinor val)
+void putSpSpinorFullSOA(__global spComplex * const restrict out, const size_t i, const spSpinor val, const size_t stride)
 {
-	const size_t stride = get_global_size(0);
 	out[ 0 * stride + i] = val.e0.e0;
 	out[ 1 * stride + i] = val.e0.e1;
 	out[ 2 * stride + i] = val.e0.e2;
@@ -995,8 +987,8 @@ void putSpSpinorFullSOA(__global spComplex * const restrict out, const size_t i,
 __kernel void copySpSpinorFullSOARestricted(__global spComplex * const restrict out, __global const spComplex * const restrict in, const ulong elems)
 {
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
-		spSpinor tmp = getSpSpinorFullSOA(in, i);
-		putSpSpinorFullSOA(out, i, tmp);
+		spSpinor tmp = getSpSpinorFullSOA(in, i, elems);
+		putSpSpinorFullSOA(out, i, tmp, elems);
 	}
 }
 __kernel void readSpSpinorFullSOARestricted(__global spComplex * const restrict out, __global const spComplex * const restrict in, const ulong elems)
@@ -1005,9 +997,9 @@ __kernel void readSpSpinorFullSOARestricted(__global spComplex * const restrict 
 	spSu3vec foo = make_spSu3vec(bla, bla, bla);
 	spSpinor tmp = make_spSpinor(foo, foo, foo, foo);
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
-		tmp = spSpinorAdd(tmp, getSpSpinorFullSOA(in, i));
+		tmp = spSpinorAdd(tmp, getSpSpinorFullSOA(in, i, elems));
 	}
-	putSpSpinorFullSOA(out, get_global_id(0), tmp);
+	putSpSpinorFullSOA(out, get_global_id(0), tmp, elems);
 }
 __kernel void writeSpSpinorFullSOARestricted(__global spComplex * const restrict out, const float in, const ulong elems)
 {
@@ -1015,7 +1007,7 @@ __kernel void writeSpSpinorFullSOARestricted(__global spComplex * const restrict
 		spComplex bla = make_spComplex(in, in);
 		spSu3vec foo = make_spSu3vec(bla, bla, bla);
 		spSpinor tmp = make_spSpinor(foo, foo, foo, foo);
-		putSpSpinorFullSOA(out, i, tmp);
+		putSpSpinorFullSOA(out, i, tmp, elems);
 	}
 }
 
@@ -1039,19 +1031,16 @@ spSpinorFromFromAligned spSpinorFromFromAlignedAdd(const spSpinorFromFromAligned
 	                                    spSu3vecFromAlignedAdd(left.e3, right.e3));
 }
 
-spSpinorFromFromAligned getSpSpinorFullAlignedSOA(__global const alignedSpComplex * const restrict in, const size_t i)
+spSpinorFromFromAligned getSpSpinorFullAlignedSOA(__global const alignedSpComplex * const restrict in, const size_t i, const size_t stride)
 {
-	const size_t stride = get_global_size(0);
-
 	return make_spSpinorFromFromAligned(make_spSu3vecFromAligned(in[0 * stride + i], in[ 1 * stride + i], in[ 2 * stride + i]),
 	                                    make_spSu3vecFromAligned(in[3 * stride + i], in[ 4 * stride + i], in[ 5 * stride + i]),
 	                                    make_spSu3vecFromAligned(in[6 * stride + i], in[ 7 * stride + i], in[ 8 * stride + i]),
 	                                    make_spSu3vecFromAligned(in[9 * stride + i], in[10 * stride + i], in[11 * stride + i]));
 }
 
-void putSpSpinorFullAlignedSOA(__global alignedSpComplex * const restrict out, const size_t i, const spSpinorFromFromAligned val)
+void putSpSpinorFullAlignedSOA(__global alignedSpComplex * const restrict out, const size_t i, const spSpinorFromFromAligned val, const size_t stride)
 {
-	const size_t stride = get_global_size(0);
 	out[ 0 * stride + i] = val.e0.e0;
 	out[ 1 * stride + i] = val.e0.e1;
 	out[ 2 * stride + i] = val.e0.e2;
@@ -1069,8 +1058,8 @@ void putSpSpinorFullAlignedSOA(__global alignedSpComplex * const restrict out, c
 __kernel void copySpSpinorFullAlignedSOARestricted(__global alignedSpComplex * const restrict out, __global const alignedSpComplex * const restrict in, const ulong elems)
 {
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
-		spSpinorFromFromAligned tmp = getSpSpinorFullAlignedSOA(in, i);
-		putSpSpinorFullAlignedSOA(out, i, tmp);
+		spSpinorFromFromAligned tmp = getSpSpinorFullAlignedSOA(in, i, elems);
+		putSpSpinorFullAlignedSOA(out, i, tmp, elems);
 	}
 }
 __kernel void readSpSpinorFullAlignedSOARestricted(__global alignedSpComplex * const restrict out, __global const alignedSpComplex * const restrict in, const ulong elems)
@@ -1079,9 +1068,9 @@ __kernel void readSpSpinorFullAlignedSOARestricted(__global alignedSpComplex * c
 	spSu3vecFromAligned foo = make_spSu3vecFromAligned(bla, bla, bla);
 	spSpinorFromFromAligned tmp = make_spSpinorFromFromAligned(foo, foo, foo, foo);
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
-		tmp = spSpinorFromFromAlignedAdd(tmp, getSpSpinorFullAlignedSOA(in, i));
+		tmp = spSpinorFromFromAlignedAdd(tmp, getSpSpinorFullAlignedSOA(in, i, elems));
 	}
-	putSpSpinorFullAlignedSOA(out, get_global_id(0), tmp);
+	putSpSpinorFullAlignedSOA(out, get_global_id(0), tmp, elems);
 }
 __kernel void writeSpSpinorFullAlignedSOARestricted(__global alignedSpComplex * const restrict out, const float in, const ulong elems)
 {
@@ -1089,7 +1078,7 @@ __kernel void writeSpSpinorFullAlignedSOARestricted(__global alignedSpComplex * 
 		alignedSpComplex bla = make_alignedSpComplex(in, in);
 		spSu3vecFromAligned foo = make_spSu3vecFromAligned(bla, bla, bla);
 		spSpinorFromFromAligned tmp = make_spSpinorFromFromAligned(foo, foo, foo, foo);
-		putSpSpinorFullAlignedSOA(out, i, tmp);
+		putSpSpinorFullAlignedSOA(out, i, tmp, elems);
 	}
 }
 
@@ -1180,15 +1169,13 @@ __kernel void writeSpSpinorFromAlignedRestricted(__global spSpinorFromAligned * 
 	}
 }
 
-spSpinorFromAligned getSpSpinorFromAlignedSOA(__global const aligned8SpSu3vec * const restrict in, const size_t i)
+spSpinorFromAligned getSpSpinorFromAlignedSOA(__global const aligned8SpSu3vec * const restrict in, const size_t i, const size_t stride)
 {
-	const size_t stride = get_global_size(0);
 	return make_spSpinorFromAligned(in[0 * stride + i], in[1 * stride + i], in[2 * stride + i], in[3 * stride + i]);
 }
 
-void putSpSpinorFromAlignedSOA(__global aligned8SpSu3vec * const restrict out, const size_t i, const spSpinorFromAligned val)
+void putSpSpinorFromAlignedSOA(__global aligned8SpSu3vec * const restrict out, const size_t i, const spSpinorFromAligned val, const size_t stride)
 {
-	const size_t stride = get_global_size(0);
 	out[0 * stride + i] = val.e0;
 	out[1 * stride + i] = val.e1;
 	out[2 * stride + i] = val.e2;
@@ -1198,8 +1185,8 @@ void putSpSpinorFromAlignedSOA(__global aligned8SpSu3vec * const restrict out, c
 __kernel void copySpSpinorFromAlignedSOARestricted(__global aligned8SpSu3vec * const restrict out, __global const aligned8SpSu3vec * const restrict in, const ulong elems)
 {
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
-		spSpinorFromAligned tmp = getSpSpinorFromAlignedSOA(in, i);
-		putSpSpinorFromAlignedSOA(out, i, tmp);
+		spSpinorFromAligned tmp = getSpSpinorFromAlignedSOA(in, i, elems);
+		putSpSpinorFromAlignedSOA(out, i, tmp, elems);
 	}
 }
 __kernel void readSpSpinorFromAlignedSOARestricted(__global aligned8SpSu3vec * const restrict out, __global const aligned8SpSu3vec * const restrict in, const ulong elems)
@@ -1208,9 +1195,9 @@ __kernel void readSpSpinorFromAlignedSOARestricted(__global aligned8SpSu3vec * c
 	aligned8SpSu3vec foo = make_aligned8SpSu3vec(bla, bla, bla);
 	spSpinorFromAligned tmp = make_spSpinorFromAligned(foo, foo, foo, foo);
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
-		tmp = spSpinorFromAlignedAdd(tmp, getSpSpinorFromAlignedSOA(in, i));
+		tmp = spSpinorFromAlignedAdd(tmp, getSpSpinorFromAlignedSOA(in, i, elems));
 	}
-	putSpSpinorFromAlignedSOA(out, get_global_id(0), tmp);
+	putSpSpinorFromAlignedSOA(out, get_global_id(0), tmp, elems);
 }
 __kernel void writeSpSpinorFromAlignedSOARestricted(__global aligned8SpSu3vec * const restrict out, const float in, const ulong elems)
 {
@@ -1218,7 +1205,7 @@ __kernel void writeSpSpinorFromAlignedSOARestricted(__global aligned8SpSu3vec * 
 		spComplex bla = make_spComplex(in, in);
 		aligned8SpSu3vec foo = make_aligned8SpSu3vec(bla, bla, bla);
 		spSpinorFromAligned tmp = make_spSpinorFromAligned(foo, foo, foo, foo);
-		putSpSpinorFromAlignedSOA(out, i, tmp);
+		putSpSpinorFromAlignedSOA(out, i, tmp, elems);
 	}
 }
 
@@ -1752,16 +1739,13 @@ __kernel void writeAligned32DpSu3vecRestricted(__global aligned32DpSu3vec * cons
 	}
 }
 
-dpSu3vec getDpSu3vecSOA(__global const alignedDpComplex * const restrict in, const size_t i)
+dpSu3vec getDpSu3vecSOA(__global const alignedDpComplex * const restrict in, const size_t i, const size_t stride)
 {
-	const size_t stride = get_global_size(0);
-
 	return make_dpSu3vec(in[0 * stride + i], in[ 1 * stride + i], in[ 2 * stride + i]);
 }
 
-void putDpSu3vecSOA(__global alignedDpComplex * const restrict out, const size_t i, const dpSu3vec val)
+void putDpSu3vecSOA(__global alignedDpComplex * const restrict out, const size_t i, const dpSu3vec val, const size_t stride)
 {
-	const size_t stride = get_global_size(0);
 	out[ 0 * stride + i] = val.e0;
 	out[ 1 * stride + i] = val.e1;
 	out[ 2 * stride + i] = val.e2;
@@ -1770,8 +1754,8 @@ void putDpSu3vecSOA(__global alignedDpComplex * const restrict out, const size_t
 __kernel void copyDpSu3vecSOARestricted(__global alignedDpComplex * const restrict out, __global const alignedDpComplex * const restrict in, const ulong elems)
 {
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
-		dpSu3vec tmp = getDpSu3vecSOA(in, i);
-		putDpSu3vecSOA(out, i, tmp);
+		dpSu3vec tmp = getDpSu3vecSOA(in, i, elems);
+		putDpSu3vecSOA(out, i, tmp, elems);
 	}
 }
 __kernel void readDpSu3vecSOARestricted(__global alignedDpComplex * const restrict out, __global const alignedDpComplex * const restrict in, const ulong elems)
@@ -1779,31 +1763,28 @@ __kernel void readDpSu3vecSOARestricted(__global alignedDpComplex * const restri
 	alignedDpComplex bla = make_alignedDpComplex(0.0f, 0.0f);
 	dpSu3vec tmp = make_dpSu3vec(bla, bla, bla);
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
-		tmp = dpSu3vecAdd(tmp, getDpSu3vecSOA(in, i));
+		tmp = dpSu3vecAdd(tmp, getDpSu3vecSOA(in, i, elems));
 	}
-	putDpSu3vecSOA(out, get_global_id(0), tmp);
+	putDpSu3vecSOA(out, get_global_id(0), tmp, elems);
 }
 __kernel void writeDpSu3vecSOARestricted(__global alignedDpComplex * const restrict out, const float in, const ulong elems)
 {
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
 		alignedDpComplex bla = make_alignedDpComplex(in, in);
 		dpSu3vec tmp = make_dpSu3vec(bla, bla, bla);
-		putDpSu3vecSOA(out, i, tmp);
+		putDpSu3vecSOA(out, i, tmp, elems);
 	}
 }
 
 
-dpSu3vec getDpSu3vecFullSOA(__global const double * const restrict in, const size_t i)
+dpSu3vec getDpSu3vecFullSOA(__global const double * const restrict in, const size_t i, const size_t stride)
 {
-	const size_t stride = get_global_size(0);
-
 	return make_dpSu3vec(make_alignedDpComplex(in[0 * stride + i], in[1 * stride + i]),
 	                     make_alignedDpComplex(in[2 * stride + i], in[3 * stride + i]),
 	                     make_alignedDpComplex(in[4 * stride + i], in[5 * stride + i]));
 }
-void putDpSu3vecFullSOA(__global double * const restrict out, const size_t i, const dpSu3vec val)
+void putDpSu3vecFullSOA(__global double * const restrict out, const size_t i, const dpSu3vec val, const size_t stride)
 {
-	const size_t stride = get_global_size(0);
 	out[ 0 * stride + i] = val.e0.re;
 	out[ 1 * stride + i] = val.e0.im;
 	out[ 2 * stride + i] = val.e1.re;
@@ -1815,8 +1796,8 @@ void putDpSu3vecFullSOA(__global double * const restrict out, const size_t i, co
 __kernel void copyDpSu3vecFullSOARestricted(__global double * const restrict out, __global const double * const restrict in, const ulong elems)
 {
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
-		dpSu3vec tmp = getDpSu3vecFullSOA(in, i);
-		putDpSu3vecFullSOA(out, i, tmp);
+		dpSu3vec tmp = getDpSu3vecFullSOA(in, i, elems);
+		putDpSu3vecFullSOA(out, i, tmp, elems);
 	}
 }
 __kernel void readDpSu3vecFullSOARestricted(__global double * const restrict out, __global const double * const restrict in, const ulong elems)
@@ -1824,16 +1805,16 @@ __kernel void readDpSu3vecFullSOARestricted(__global double * const restrict out
 	alignedDpComplex bla = make_alignedDpComplex(0.0f, 0.0f);
 	dpSu3vec tmp = make_dpSu3vec(bla, bla, bla);
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
-		tmp = dpSu3vecAdd(tmp, getDpSu3vecFullSOA(in, i));
+		tmp = dpSu3vecAdd(tmp, getDpSu3vecFullSOA(in, i, elems));
 	}
-	putDpSu3vecFullSOA(out, get_global_id(0), tmp);
+	putDpSu3vecFullSOA(out, get_global_id(0), tmp, elems);
 }
 __kernel void writeDpSu3vecFullSOARestricted(__global double * const restrict out, const float in, const ulong elems)
 {
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
 		alignedDpComplex bla = make_alignedDpComplex(in, in);
 		dpSu3vec tmp = make_dpSu3vec(bla, bla, bla);
-		putDpSu3vecFullSOA(out, i, tmp);
+		putDpSu3vecFullSOA(out, i, tmp, elems);
 	}
 }
 
@@ -2020,18 +2001,15 @@ __kernel void writeAligned32DpSu3Restricted(__global aligned32DpSu3 * const rest
 	}
 }
 
-dpSu3 getDpSu3SOA(__global const alignedDpComplex * const restrict in, const size_t i)
+dpSu3 getDpSu3SOA(__global const alignedDpComplex * const restrict in, const size_t i, const size_t stride)
 {
-	const size_t stride = get_global_size(0);
-
 	return make_dpSu3(in[0 * stride + i], in[1 * stride + i], in[2 * stride + i],
                       in[3 * stride + i], in[4 * stride + i], in[5 * stride + i],
                       in[6 * stride + i], in[7 * stride + i], in[8 * stride + i]);
 }
 
-void putDpSu3SOA(__global alignedDpComplex * const restrict out, const size_t i, const dpSu3 val)
+void putDpSu3SOA(__global alignedDpComplex * const restrict out, const size_t i, const dpSu3 val, const size_t stride)
 {
-	const size_t stride = get_global_size(0);
 	out[0 * stride + i] = val.e00;
 	out[1 * stride + i] = val.e01;
 	out[2 * stride + i] = val.e02;
@@ -2046,8 +2024,8 @@ void putDpSu3SOA(__global alignedDpComplex * const restrict out, const size_t i,
 __kernel void copyDpSu3SOARestricted(__global alignedDpComplex * const restrict out, __global const alignedDpComplex * const restrict in, const ulong elems)
 {
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
-		dpSu3 tmp = getDpSu3SOA(in, i);
-		putDpSu3SOA(out, i, tmp);
+		dpSu3 tmp = getDpSu3SOA(in, i, elems);
+		putDpSu3SOA(out, i, tmp, elems);
 	}
 }
 __kernel void readDpSu3SOARestricted(__global alignedDpComplex * const restrict out, __global const alignedDpComplex * const restrict in, const ulong elems)
@@ -2055,24 +2033,22 @@ __kernel void readDpSu3SOARestricted(__global alignedDpComplex * const restrict 
 	alignedDpComplex bla = make_alignedDpComplex(0.0f, 0.0f);
 	dpSu3 tmp = make_dpSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
-		tmp = dpSu3Add(tmp, getDpSu3SOA(in, i));
+		tmp = dpSu3Add(tmp, getDpSu3SOA(in, i, elems));
 	}
-	putDpSu3SOA(out, get_global_id(0), tmp);
+	putDpSu3SOA(out, get_global_id(0), tmp, elems);
 }
 __kernel void writeDpSu3SOARestricted(__global alignedDpComplex * const restrict out, const float in, const ulong elems)
 {
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
 		alignedDpComplex bla = make_alignedDpComplex(in, in);
 		dpSu3 tmp = make_dpSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
-		putDpSu3SOA(out, i, tmp);
+		putDpSu3SOA(out, i, tmp, elems);
 	}
 }
 
 
-dpSu3 getDpSu3FullSOA(__global const double * const restrict in, const size_t i)
+dpSu3 getDpSu3FullSOA(__global const double * const restrict in, const size_t i, const size_t stride)
 {
-	const size_t stride = get_global_size(0);
-
 	return make_dpSu3(make_alignedDpComplex(in[ 0 * stride + i], in[ 1 * stride + i]),
                       make_alignedDpComplex(in[ 2 * stride + i], in[ 3 * stride + i]),
                       make_alignedDpComplex(in[ 4 * stride + i], in[ 5 * stride + i]),
@@ -2083,9 +2059,8 @@ dpSu3 getDpSu3FullSOA(__global const double * const restrict in, const size_t i)
                       make_alignedDpComplex(in[14 * stride + i], in[15 * stride + i]),
                       make_alignedDpComplex(in[16 * stride + i], in[17 * stride + i]));
 }
-void putDpSu3FullSOA(__global double * const restrict out, const size_t i, const dpSu3 val)
+void putDpSu3FullSOA(__global double * const restrict out, const size_t i, const dpSu3 val, const size_t stride)
 {
-	const size_t stride = get_global_size(0);
 	out[ 0 * stride + i] = val.e00.re;
 	out[ 1 * stride + i] = val.e00.im;
 	out[ 2 * stride + i] = val.e01.re;
@@ -2109,8 +2084,8 @@ void putDpSu3FullSOA(__global double * const restrict out, const size_t i, const
 __kernel void copyDpSu3FullSOARestricted(__global double * const restrict out, __global const double * const restrict in, const ulong elems)
 {
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
-		dpSu3 tmp = getDpSu3FullSOA(in, i);
-		putDpSu3FullSOA(out, i, tmp);
+		dpSu3 tmp = getDpSu3FullSOA(in, i, elems);
+		putDpSu3FullSOA(out, i, tmp, elems);
 	}
 }
 __kernel void readDpSu3FullSOARestricted(__global double * const restrict out, __global const double * const restrict in, const ulong elems)
@@ -2118,16 +2093,16 @@ __kernel void readDpSu3FullSOARestricted(__global double * const restrict out, _
 	alignedDpComplex bla = make_alignedDpComplex(0.0f, 0.0f);
 	dpSu3 tmp = make_dpSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
-		tmp = dpSu3Add(tmp, getDpSu3FullSOA(in, i));
+		tmp = dpSu3Add(tmp, getDpSu3FullSOA(in, i, elems));
 	}
-	putDpSu3FullSOA(out, get_global_id(0), tmp);
+	putDpSu3FullSOA(out, get_global_id(0), tmp, elems);
 }
 __kernel void writeDpSu3FullSOARestricted(__global double * const restrict out, const float in, const ulong elems)
 {
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
 		alignedDpComplex bla = make_alignedDpComplex(in, in);
 		dpSu3 tmp = make_dpSu3(bla, bla, bla, bla, bla, bla, bla, bla, bla);
-		putDpSu3FullSOA(out, i, tmp);
+		putDpSu3FullSOA(out, i, tmp, elems);
 	}
 }
 
@@ -2301,16 +2276,13 @@ __kernel void writeAligned32DpSpinorRestricted(__global aligned32DpSpinor * cons
 }
 
 
-dpSpinor getDpSpinorSOA(__global const aligned16DpSu3vec * const restrict in, const size_t i)
+dpSpinor getDpSpinorSOA(__global const aligned16DpSu3vec * const restrict in, const size_t i, const size_t stride)
 {
-	const size_t stride = get_global_size(0);
-
 	return make_dpSpinor(in[0 * stride + i], in[1 * stride + i], in[2 * stride + i], in[3 * stride + i]);
 }
 
-void putDpSpinorSOA(__global aligned16DpSu3vec * const restrict out, const size_t i, const dpSpinor val)
+void putDpSpinorSOA(__global aligned16DpSu3vec * const restrict out, const size_t i, const dpSpinor val, const size_t stride)
 {
-	const size_t stride = get_global_size(0);
 	out[0 * stride + i] = val.e0;
 	out[1 * stride + i] = val.e1;
 	out[2 * stride + i] = val.e2;
@@ -2320,8 +2292,8 @@ void putDpSpinorSOA(__global aligned16DpSu3vec * const restrict out, const size_
 __kernel void copyDpSpinorSOARestricted(__global aligned16DpSu3vec * const restrict out, __global const aligned16DpSu3vec * const restrict in, const ulong elems)
 {
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
-		dpSpinor tmp = getDpSpinorSOA(in, i);
-		putDpSpinorSOA(out, i, tmp);
+		dpSpinor tmp = getDpSpinorSOA(in, i, elems);
+		putDpSpinorSOA(out, i, tmp, elems);
 	}
 }
 __kernel void readDpSpinorSOARestricted(__global aligned16DpSu3vec * const restrict out, __global const aligned16DpSu3vec * const restrict in, const ulong elems)
@@ -2330,9 +2302,9 @@ __kernel void readDpSpinorSOARestricted(__global aligned16DpSu3vec * const restr
 	aligned16DpSu3vec foo = make_aligned16DpSu3vec(bla, bla, bla);
 	dpSpinor tmp = make_dpSpinor(foo, foo, foo, foo);
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
-		tmp = dpSpinorAdd(tmp, getDpSpinorSOA(in, i));
+		tmp = dpSpinorAdd(tmp, getDpSpinorSOA(in, i, elems));
 	}
-	putDpSpinorSOA(out, get_global_id(0), tmp);
+	putDpSpinorSOA(out, get_global_id(0), tmp, elems);
 }
 __kernel void writeDpSpinorSOARestricted(__global aligned16DpSu3vec * const restrict out, const float in, const ulong elems)
 {
@@ -2340,22 +2312,19 @@ __kernel void writeDpSpinorSOARestricted(__global aligned16DpSu3vec * const rest
 		alignedDpComplex bla = make_alignedDpComplex(in, in);
 		aligned16DpSu3vec foo = make_aligned16DpSu3vec(bla, bla, bla);
 		dpSpinor tmp = make_dpSpinor(foo, foo, foo, foo);
-		putDpSpinorSOA(out, i, tmp);
+		putDpSpinorSOA(out, i, tmp, elems);
 	}
 }
 
-dpSpinor getDpSpinorFullSOA(__global const alignedDpComplex * const restrict in, const size_t i)
+dpSpinor getDpSpinorFullSOA(__global const alignedDpComplex * const restrict in, const size_t i, const size_t stride)
 {
-	const size_t stride = get_global_size(0);
-
 	return make_dpSpinor(make_aligned16DpSu3vec(in[0 * stride + i], in[ 1 * stride + i], in[ 2 * stride + i]),
                          make_aligned16DpSu3vec(in[3 * stride + i], in[ 4 * stride + i], in[ 5 * stride + i]),
                          make_aligned16DpSu3vec(in[6 * stride + i], in[ 7 * stride + i], in[ 8 * stride + i]),
                          make_aligned16DpSu3vec(in[9 * stride + i], in[10 * stride + i], in[11 * stride + i]));
 }
-void putDpSpinorFullSOA(__global alignedDpComplex * const restrict out, const size_t i, const dpSpinor val)
+void putDpSpinorFullSOA(__global alignedDpComplex * const restrict out, const size_t i, const dpSpinor val, const size_t stride)
 {
-	const size_t stride = get_global_size(0);
 	out[ 0 * stride + i] = val.e0.e0;
 	out[ 1 * stride + i] = val.e0.e1;
 	out[ 2 * stride + i] = val.e0.e2;
@@ -2373,8 +2342,8 @@ void putDpSpinorFullSOA(__global alignedDpComplex * const restrict out, const si
 __kernel void copyDpSpinorFullSOARestricted(__global alignedDpComplex * const restrict out, __global const alignedDpComplex * const restrict in, const ulong elems)
 {
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
-		dpSpinor tmp = getDpSpinorFullSOA(in, i);
-		putDpSpinorFullSOA(out, i, tmp);
+		dpSpinor tmp = getDpSpinorFullSOA(in, i, elems);
+		putDpSpinorFullSOA(out, i, tmp, elems);
 	}
 }
 __kernel void readDpSpinorFullSOARestricted(__global alignedDpComplex * const restrict out, __global const alignedDpComplex * const restrict in, const ulong elems)
@@ -2383,9 +2352,9 @@ __kernel void readDpSpinorFullSOARestricted(__global alignedDpComplex * const re
 	aligned16DpSu3vec foo = make_aligned16DpSu3vec(bla, bla, bla);
 	dpSpinor tmp = make_dpSpinor(foo, foo, foo, foo);
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
-		tmp = dpSpinorAdd(tmp, getDpSpinorFullSOA(in, i));
+		tmp = dpSpinorAdd(tmp, getDpSpinorFullSOA(in, i, elems));
 	}
-	putDpSpinorFullSOA(out, get_global_id(0), tmp);
+	putDpSpinorFullSOA(out, get_global_id(0), tmp, elems);
 }
 __kernel void writeDpSpinorFullSOARestricted(__global alignedDpComplex * const restrict out, const float in, const ulong elems)
 {
@@ -2393,14 +2362,12 @@ __kernel void writeDpSpinorFullSOARestricted(__global alignedDpComplex * const r
 		alignedDpComplex bla = make_alignedDpComplex(in, in);
 		aligned16DpSu3vec foo = make_aligned16DpSu3vec(bla, bla, bla);
 		dpSpinor tmp = make_dpSpinor(foo, foo, foo, foo);
-		putDpSpinorFullSOA(out, i, tmp);
+		putDpSpinorFullSOA(out, i, tmp, elems);
 	}
 }
 
-dpSpinor getDpSpinorFullestSOA(__global const double * const restrict in, const size_t i)
+dpSpinor getDpSpinorFullestSOA(__global const double * const restrict in, const size_t i, const size_t stride)
 {
-	const size_t stride = get_global_size(0);
-
 	return make_dpSpinor(make_aligned16DpSu3vec(make_alignedDpComplex(in[ 0 * stride + i], in[ 1 * stride + i]),
 	                                            make_alignedDpComplex(in[ 2 * stride + i], in[ 3 * stride + i]),
 	                                            make_alignedDpComplex(in[ 4 * stride + i], in[ 5 * stride + i])),
@@ -2414,9 +2381,8 @@ dpSpinor getDpSpinorFullestSOA(__global const double * const restrict in, const 
 	                                            make_alignedDpComplex(in[20 * stride + i], in[21 * stride + i]),
 	                                            make_alignedDpComplex(in[22 * stride + i], in[23 * stride + i])));
 }
-void putDpSpinorFullestSOA(__global double * const restrict out, const size_t i, const dpSpinor val)
+void putDpSpinorFullestSOA(__global double * const restrict out, const size_t i, const dpSpinor val, const size_t stride)
 {
-	const size_t stride = get_global_size(0);
 	out[ 0 * stride + i] = val.e0.e0.re;
 	out[ 1 * stride + i] = val.e0.e0.im;
 	out[ 2 * stride + i] = val.e0.e1.re;
@@ -2446,8 +2412,8 @@ void putDpSpinorFullestSOA(__global double * const restrict out, const size_t i,
 __kernel void copyDpSpinorFullestSOARestricted(__global double * const restrict out, __global const double * const restrict in, const ulong elems)
 {
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
-		dpSpinor tmp = getDpSpinorFullestSOA(in, i);
-		putDpSpinorFullestSOA(out, i, tmp);
+		dpSpinor tmp = getDpSpinorFullestSOA(in, i, elems);
+		putDpSpinorFullestSOA(out, i, tmp, elems);
 	}
 }
 __kernel void readDpSpinorFullestSOARestricted(__global double * const restrict out, __global const double * const restrict in, const ulong elems)
@@ -2456,9 +2422,9 @@ __kernel void readDpSpinorFullestSOARestricted(__global double * const restrict 
 	aligned16DpSu3vec foo = make_aligned16DpSu3vec(bla, bla, bla);
 	dpSpinor tmp = make_dpSpinor(foo, foo, foo, foo);
 	for(size_t i = get_global_id(0); i < elems; i += get_global_size(0)) {
-		tmp = dpSpinorAdd(tmp, getDpSpinorFullestSOA(in, i));
+		tmp = dpSpinorAdd(tmp, getDpSpinorFullestSOA(in, i, elems));
 	}
-	putDpSpinorFullestSOA(out, get_global_id(0), tmp);
+	putDpSpinorFullestSOA(out, get_global_id(0), tmp, elems);
 }
 __kernel void writeDpSpinorFullestSOARestricted(__global double * const restrict out, const float in, const ulong elems)
 {
@@ -2466,7 +2432,7 @@ __kernel void writeDpSpinorFullestSOARestricted(__global double * const restrict
 		alignedDpComplex bla = make_alignedDpComplex(in, in);
 		aligned16DpSu3vec foo = make_aligned16DpSu3vec(bla, bla, bla);
 		dpSpinor tmp = make_dpSpinor(foo, foo, foo, foo);
-		putDpSpinorFullestSOA(out, i, tmp);
+		putDpSpinorFullestSOA(out, i, tmp, elems);
 	}
 }
 
