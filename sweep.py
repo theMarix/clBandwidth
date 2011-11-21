@@ -20,6 +20,7 @@
 
 import pyopencl as cl
 import optparse
+import csv
 
 from runner import *
 
@@ -36,6 +37,7 @@ if __name__ == '__main__':
 	parser.add_option('-s', '--mem-step-size', type=int, default=192, metavar='BYTE', help='Memory step size in bytes')
 	parser.add_option('-k', '--kernel', metavar='KERNEL', default='copyDpSpinorFullSOARestricted', help='The kernel to benchmark')
 	parser.add_option('--progress', action='store_true', default=False, help='Display a progress bar while running kernels')
+	parser.add_option('--export', metavar='FILE', help='Export measurement results to a CSV file')
 
 	(args, rem) = parser.parse_args()
 
@@ -74,6 +76,11 @@ if __name__ == '__main__':
 	for datapoint in datapoints:
 		print '{0.kernel} {0.bytes_transferred} {0.time:.0f} ({1:.1%}) {0.bandwidth}'.format(datapoint, datapoint.time_std / datapoint.time)
 
+	if args.export != None:
+		writer = csv.writer(open(args.export, 'wb'), quoting=csv.QUOTE_MINIMAL)
+		writer.writerow(datapoints[0]._fields)
+		writer.writerows(datapoints)
+
 	if args.plot:
 		import matplotlib.pyplot as plt # by including it here we won't need it unless we want to plot
 
@@ -99,4 +106,3 @@ if __name__ == '__main__':
 			plt.savefig(args.plot_file)
 		else:
 			plt.show()
-
