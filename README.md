@@ -13,4 +13,7 @@ Requirements
 Usage
 -----
 
-Simply execute ``bandwidth.py``. You can run ``bandwidth.py --help`` for information about additional invocation options.
+There are multiple scripts to choose from. For each script you will get additional invocation options by invoking it with ``--help``:
+
+ * ``bandwidth.py`` - Compare the bandwidth of multiple kernels for a given memory size.
+ * ```sweepMemSize.py`` - Check the performance of a single kernel over a certain memory size range.
