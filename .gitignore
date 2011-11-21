@@ -1,3 +1,6 @@
 # Ignore AMD compiler output
 *.isa
 *.il
+
+# Ignore python compiler output
+*.pyc
