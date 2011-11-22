@@ -43,6 +43,7 @@ if __name__ == '__main__':
 	parser.add_option('--progress', action='store_true', default=False, help='Display a progress bar while running kernels')
 	parser.add_option('--export', metavar='FILE', help='Export measurement results to a CSV file')
 	parser.add_option('--import', metavar='FILE', action='append', help='Import data from file instead of benchmarking', dest='imports')
+	parser.add_option('--sweep-sizes', action='store_true', default=False, help='Also sweep sizes, generates a pseudo-color plot when plotting')
 
 	(args, rem) = parser.parse_args()
 
@@ -66,25 +67,35 @@ if __name__ == '__main__':
 		# For strides larger than 2 * elems * struct-elems-size no new effects should occur (assuming large values for elems...)
 		# The maximum memory required will therefore be 2 * elems * struct-elems * struct-elems-size
 
-		elems = runner.max_mem_size / 2 / args.struct_elems / args.struct_elems_size
-		min_stride = elems * args.struct_elems_size
-		max_stride = 2 * min_stride
-		transfer_size = min_stride * args.struct_elems
-
 		if args.progress:
 			from progressbar import ProgressBar
 			progress = ProgressBar().start()
 
-		for stride in range(min_stride, max_stride, args.struct_elems_size):
-			try:
-				datapoint = runner.benchmark(args.kernel, mem_size = transfer_size, stride = stride / args.struct_elems_size)
-				datapoints.append(StrideDataPoint(*datapoint, stride = stride))
-				if args.progress:
-					progress.update((stride - min_stride) / float(max_stride - min_stride) * 100)
-			except (cl.RuntimeError, cl.LogicError) as ex:
-				# On Apples OpenCL retrieving the profiling information sometimes seems to fail for no good reason
-				# In addition, sometimes the queue becomes invalid
-				print 'Error benchmarking {0}: {1}'.format(kernel, ex)
+		if args.sweep_sizes:
+			sizes = range(args.struct_elems * args.struct_elems_size, runner.max_mem_size, args.struct_elems * args.struct_elems_size)
+		else:
+			sizes = [runner.max_mem_size]
+
+		for size in sizes:
+
+			elems = size / 2 / args.struct_elems / args.struct_elems_size
+			min_stride = elems * args.struct_elems_size
+			max_stride = 2 * min_stride
+			transfer_size = min_stride * args.struct_elems
+
+			for stride in range(min_stride, max_stride, args.struct_elems_size):
+				try:
+					datapoint = runner.benchmark(args.kernel, mem_size = transfer_size, stride = stride / args.struct_elems_size)
+					datapoints.append(StrideDataPoint(*datapoint, stride = stride))
+					if args.progress:
+						if len(sizes) > 1:
+							progress.update(float(size) / runner.max_mem_size * 100)
+						else:
+							progress.update((stride - min_stride) / float(max_stride - min_stride) * 100)
+				except (cl.RuntimeError, cl.LogicError) as ex:
+					# On Apples OpenCL retrieving the profiling information sometimes seems to fail for no good reason
+					# In addition, sometimes the queue becomes invalid
+					print 'Error benchmarking {0}: {1}'.format(kernel, ex)
 
 		if args.progress:
 			progress.finish()
