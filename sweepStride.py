@@ -110,6 +110,7 @@ if __name__ == '__main__':
 			writer.writerows(datapoints)
 
 		to_plot = [datapoints]
+		labels = ['']
 
 	else: # data file(s) given. import
 
@@ -118,27 +119,32 @@ if __name__ == '__main__':
 			reader = csv.reader(open(file, 'rb'))
 			reader.next() # skip headers
 			to_plot.append(map(StrideDataPoint._make, reader))
+		labels = args.imports
 
 	if args.plot:
 		import matplotlib.pyplot as plt # by including it here we won't need it unless we want to plot
 
+		plt.figure(figsize=(16,10))
+
 		plots = []
+		idx = 0
 		for datapoints in to_plot:
-			bandwidths = map(lambda p: p.bandwidth, datapoints)
-			strides = map(lambda p: p.stride, datapoints)
+			bandwidths = map(lambda p: float(p.bandwidth), datapoints)
+			strides = map(lambda p: int(p.stride), datapoints)
 			if args.plot_errorbars:
-				errs = map(lambda p: p.time_std / p.time * p.bandwidth, datapoints)
+				errs = map(lambda p: float(p.time_std) / float(p.time) * float(p.bandwidth), datapoints)
 
 			if args.plot_errorbars:
-				plots.append(plt.errorbar(strides, bandwidths, yerr=errs, fmt='.', ecolor='black'))
+				plots.append(plt.errorbar(strides, bandwidths, yerr=errs, fmt='.', ecolor='black', label=labels[idx]))
 			else:
-				plots.append(plt.plot(strides, bandwidths, '.'))
+				plots.append(plt.plot(strides, bandwidths, '.', label=labels[idx]))
+			idx += 1
 
 		if args.imports == None:
 			plt.title('Global Memory Bandwidth of {0}'.format(args.kernel))
 		else:
 			plt.title('Global Memory Bandwidth')
-			plt.legend(plots, args.imports, loc='lower right')
+			plt.legend(loc='lower right')
 		plt.xlabel('Stride / Bytes')
 		plt.ylabel('GB/s')
 
