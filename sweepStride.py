@@ -44,6 +44,7 @@ if __name__ == '__main__':
 	parser.add_option('--export', metavar='FILE', help='Export measurement results to a CSV file')
 	parser.add_option('--import', metavar='FILE', action='append', help='Import data from file instead of benchmarking', dest='imports')
 	parser.add_option('--sweep-sizes', action='store_true', default=False, help='Also sweep sizes, generates a pseudo-color plot when plotting')
+	parser.add_option('--plot-norm-x', metavar='N', default=1, help='Normalize x axis of plot by N')
 
 	(args, rem) = parser.parse_args()
 
@@ -126,11 +127,12 @@ if __name__ == '__main__':
 
 		plt.figure(figsize=(16,10))
 
+		plt.grid(axis='x')
 		plots = []
 		idx = 0
 		for datapoints in to_plot:
 			bandwidths = map(lambda p: float(p.bandwidth), datapoints)
-			strides = map(lambda p: int(p.stride), datapoints)
+			strides = map(lambda p: int(p.stride) / float(args.plot_norm_x), datapoints)
 			if args.plot_errorbars:
 				errs = map(lambda p: float(p.time_std) / float(p.time) * float(p.bandwidth), datapoints)
 
@@ -145,7 +147,10 @@ if __name__ == '__main__':
 		else:
 			plt.title('Global Memory Bandwidth')
 			plt.legend(loc='lower right')
-		plt.xlabel('Stride / Bytes')
+		if args.plot_norm_x == 1:
+			plt.xlabel('Stride / Bytes')
+		else:
+			plt.xlabel('Stride / {0} Bytes'.format(args.plot_norm_x))
 		plt.ylabel('GB/s')
 
 		# handle markers
