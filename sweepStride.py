@@ -122,6 +122,16 @@ if __name__ == '__main__':
 			to_plot.append(map(StrideDataPoint._make, reader))
 		labels = args.imports
 
+	#reformat data
+	even = []
+	odd = []
+	datapoints = to_plot[0]
+
+	to_plot = [[], [], [], []]
+	labels = ['(N/16)%4+0', '(N/16)%4+1', '(N/16)%4+2', '(N/16)%4+3']
+	for datapoint in datapoints:
+		to_plot[(int(datapoint.stride) / 16 ) % 4].append(datapoint)
+
 	if args.plot:
 		import matplotlib.pyplot as plt # by including it here we won't need it unless we want to plot
 
