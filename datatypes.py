@@ -24,12 +24,17 @@ class Type:
 		self.size = size
 
 types = [
-	Type('float', 4),
-	Type('float2', 8),
-	Type('float4', 16),
+	Type('char', 1),
+	Type('uchar', 1),
+	Type('short', 2),
+	Type('ushort', 2),
 	Type('int', 4),
-	Type('int2', 8),
-	Type('int4', 16)
+	Type('uint', 4),
+	Type('long', 8),
+	Type('ulong', 8),
+	Type('half', 2),
+	Type('float', 4),
+	Type('double', 8)
 ];
 
 def getType(name):
@@ -37,3 +42,11 @@ def getType(name):
 		if cand.name == name:
 			return cand
 	raise NameError('{0} is not a valid type name'.format(name))
+
+# module initialization
+
+# generate vector types
+__vectorElems = [2, 3, 4, 8, 16]
+for scalar in types[:]:
+	for n in __vectorElems:
+		types.append(Type('{0}{1}'.format(scalar.name, n), n * scalar.size))
