@@ -78,38 +78,38 @@ class Runner:
 		return 'cl_khr_fp64' in extensions or 'cl_amd_fp64' in extensions
 
 	def createKernel(self, datatype, num_elems, plain_pointers = False):
-		build_options = ''
+		generated_source = ''
 
 		if isinstance(datatype, Struct):
 			scalar_name = datatype.scalar.name
 			# TODO allign type
-			build_options += '''
+			generated_source += '''
 			typedef struct Struct_s {
 			'''
 			for i in range(datatype.elems - 1):
-				build_options += '{0} e{1};\n'.format(scalar_name, i)
+				generated_source += '{0} e{1};\n'.format(scalar_name, i)
 				i += 1
-			build_options += '{0} e{1}'.format(scalar_name, datatype.elems - 1)
-			build_options += '} Struct_t;\n'
+			generated_source += '{0} e{1}'.format(scalar_name, datatype.elems - 1)
+			generated_source += '} Struct_t;\n'
 			scalar_name = 'Struct_t'
 		else:
 			scalar_name = datatype.name
 
 		# not the strange way to send definitions to the kernel
 		# this is due to some weired error on OSX
-		build_options += '''
+		generated_source += '''
 		#define SCALAR {0}
 		#define NUM_ELEMS {1}
 		'''.format(scalar_name, num_elems);
 		if plain_pointers:
-			build_options += '#define PLAIN_POINTERS\n';
+			generated_source += '#define PLAIN_POINTERS\n';
 
 		# TODO make choosable
 		if self.device.type == cl.device_type.CPU:
-			build_options += '#define BLOCKED_LOOP\n'
+			generated_source += '#define BLOCKED_LOOP\n'
 
 		f = open('kernels.cl', 'r')
-		fstr = build_options + "".join(f.readlines())
+		fstr = generated_source + "".join(f.readlines())
 		prg = cl.Program(self.ctx, fstr).build()
 		return prg.copyScalar;
 
