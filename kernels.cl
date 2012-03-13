@@ -77,7 +77,7 @@ for(size_t i = get_global_id(0); i < NUM_ELEMS; i += get_global_size(0))
 __kernel void copyScalar(__global WRITEABLE(SCALAR, out), __global READONLY(SCALAR, in))
 {
 	PARALLEL_FOR(i) {
-		out[i] = in[i];
+		out[OFFSET + i] = in[OFFSET + i];
 	}
 };
 

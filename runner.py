@@ -77,7 +77,7 @@ class Runner:
 		extensions = self.device.extensions
 		return 'cl_khr_fp64' in extensions or 'cl_amd_fp64' in extensions
 
-	def createKernel(self, datatype, num_elems, plain_pointers = False, SOA_stride = 0):
+	def createKernel(self, datatype, num_elems, plain_pointers = False, SOA_stride = 0, offset = 0):
 		generated_source = '''
 #ifdef PLAIN_POINTERS
 #define WRITEABLE(type, p) type * p
@@ -87,6 +87,8 @@ class Runner:
 #define READONLY(type, p) const type * const restrict p
 #endif
 '''
+
+		generated_source += '#define OFFSET {0}\n'.format(offset)
 
 		if isinstance(datatype, Struct):
 			scalar_name = datatype.scalar.name
@@ -110,12 +112,12 @@ class Runner:
 				generated_source += 'void pokeStruct(__global WRITEABLE(SCALAR, out), const size_t idx, const Struct_t val);\n'
 				generated_source += 'Struct_t peekStruct(__global READONLY(SCALAR, in), const size_t idx) { return (Struct_t) {'
 				for i in range(datatype.elems - 1):
-					generated_source += 'in[idx + SOA_STRIDE * {0}], '.format(i)
-				generated_source += 'in[idx + SOA_STRIDE * {0}]'.format(datatype.elems - 1)
+					generated_source += 'in[idx + OFFSET + SOA_STRIDE * {0}], '.format(i)
+				generated_source += 'in[idx + OFFSET + SOA_STRIDE * {0}]'.format(datatype.elems - 1)
 				generated_source += '}; };\n'
 				generated_source += 'void pokeStruct(__global WRITEABLE(SCALAR, out), const size_t idx, const Struct_t val) {'
 				for i in range(datatype.elems):
-					generated_source += 'out[idx + SOA_STRIDE * {0}] = val.e{0};'.format(i)
+					generated_source += 'out[idx + OFFSET + SOA_STRIDE * {0}] = val.e{0};'.format(i)
 				generated_source += '};\n'
 			else:
 				scalar_name = 'Struct_t'
@@ -144,7 +146,7 @@ class Runner:
 		else:
 			return prg.copyScalar;
 
-	def benchmark(self, datatype, mem_size = None, global_threads = None, local_threads = None, stride = None):
+	def benchmark(self, datatype, mem_size = None, global_threads = None, local_threads = None, stride = 0, offset = 0):
 		BENCH_RUNS = 10
 		WARMUP_RUNS = 2
 
@@ -154,13 +156,11 @@ class Runner:
 			local_threads = self.local_threads
 		if not mem_size:
 			mem_size = self.max_mem_size
-		if not stride:
-			stride = 0
 
-		elems = mem_size / datatype.size;
+		elems = mem_size / datatype.size - offset;
 		bytes_transferred = elems * datatype.size * 2
 
-		kernel = self.createKernel(datatype, elems, SOA_stride = stride)
+		kernel = self.createKernel(datatype, elems, SOA_stride = stride, offset = offset)
 
 		events = []
 		for i in range(BENCH_RUNS + WARMUP_RUNS):

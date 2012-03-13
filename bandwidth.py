@@ -31,6 +31,7 @@ if __name__ == '__main__':
 	parser.add_option('-t', '--type', default='float', metavar='TYPE', help='The basic scalar type to use')
 	parser.add_option('-e', '--struct-elems', type=int, metavar='N', help='Use a struct of N elems of the basic scalar type')
 	parser.add_option('--soa', default=False, action='store_true', help='Use SOA storage')
+	parser.add_option('--offset', default=0, type=int, metavar='N', help='Offset (in elements) to use for array vs. buffer')
 
 	(args, rem) = parser.parse_args()
 
@@ -53,6 +54,8 @@ if __name__ == '__main__':
 	bench_args = {}
 	if args.soa:
 		bench_args['stride'] = -1
+	if args.offset:
+		bench_args['offset'] = args.offset
 
 	print '#Type Bytes nanos (rel err) GB/s'
 	try:
