@@ -106,6 +106,8 @@ class Runner:
 					SOA_stride = num_elems
 				generated_source += '#define ENABLE_STRUCT\n'
 				generated_source += '#define SOA_STRIDE {0}\n'.format(SOA_stride)
+				generated_source += 'Struct_t peekStruct(__global READONLY(SCALAR, in), const size_t idx);\n'
+				generated_source += 'void pokeStruct(__global WRITEABLE(SCALAR, out), const size_t idx, const Struct_t val);\n'
 				generated_source += 'Struct_t peekStruct(__global READONLY(SCALAR, in), const size_t idx) { return (Struct_t) {'
 				for i in range(datatype.elems - 1):
 					generated_source += 'in[idx + SOA_STRIDE * {0}], '.format(i)
