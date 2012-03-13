@@ -24,14 +24,13 @@ from collections import namedtuple
 
 MAX_MEM_SIZE = 10 * 1024 * 1024 # 10 MiB
 LOCAL_THREADS = 128
-GLOBAL_THREADS = 20 * 8 * LOCAL_THREADS
 
 # Result of kernel invocation for a given set of parameters. time is in nanos, bandwidth in GB/s
 DataPoint = namedtuple('DataPoint', 'kernel global_threads local_threads bytes_transferred time time_std bandwidth')
 
 class Runner:
 
-	def __init__(self, device = None, local_threads = None, global_threads = GLOBAL_THREADS, max_mem_size = MAX_MEM_SIZE, alternate_buffers = True):
+	def __init__(self, device = None, local_threads = None, global_threads = None, max_mem_size = MAX_MEM_SIZE, alternate_buffers = True):
 		if device != None:
 			platforms = cl.get_platforms()
 			if len(platforms) > 1:
@@ -54,6 +53,11 @@ class Runner:
 				local_threads = 1
 			else:
 				local_threads = LOCAL_THREADS
+		if global_threads == None:
+			if self.device.type == cl.device_type.CPU:
+				global_threads = self.device.max_compute_units * local_threads
+			else:
+				global_threads = self.device.max_compute_units * local_threads * 8
 
 		self.local_threads = local_threads
 		self.global_threads = global_threads
