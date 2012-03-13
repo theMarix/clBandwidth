@@ -22,6 +22,8 @@ import pyopencl as cl
 import numpy as np
 from collections import namedtuple
 
+from datatypes import *
+
 MAX_MEM_SIZE = 10 * 1024 * 1024 # 10 MiB
 LOCAL_THREADS = 128
 
@@ -75,13 +77,30 @@ class Runner:
 		extensions = self.device.extensions
 		return 'cl_khr_fp64' in extensions or 'cl_amd_fp64' in extensions
 
-	def createKernel(self, typename, num_elems, plain_pointers = False):
+	def createKernel(self, datatype, num_elems, plain_pointers = False):
+		build_options = ''
+
+		if isinstance(datatype, Struct):
+			scalar_name = datatype.scalar.name
+			# TODO allign type
+			build_options += '''
+			typedef struct Struct_s {
+			'''
+			for i in range(datatype.elems - 1):
+				build_options += '{0} e{1};\n'.format(scalar_name, i)
+				i += 1
+			build_options += '{0} e{1}'.format(scalar_name, datatype.elems - 1)
+			build_options += '} Struct_t;\n'
+			scalar_name = 'Struct_t'
+		else:
+			scalar_name = datatype.name
+
 		# not the strange way to send definitions to the kernel
 		# this is due to some weired error on OSX
-		build_options = '''
-#define SCALAR {0}
-#define NUM_ELEMS {1}
-'''.format(typename, num_elems);
+		build_options += '''
+		#define SCALAR {0}
+		#define NUM_ELEMS {1}
+		'''.format(scalar_name, num_elems);
 		if plain_pointers:
 			build_options += '#define PLAIN_POINTERS\n';
 
@@ -110,7 +129,7 @@ class Runner:
 		elems = mem_size / datatype.size;
 		bytes_transferred = elems * datatype.size * 2
 
-		kernel = self.createKernel(datatype.name, elems)
+		kernel = self.createKernel(datatype, elems)
 
 		events = []
 		for i in range(BENCH_RUNS + WARMUP_RUNS):

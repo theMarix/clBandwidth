@@ -29,6 +29,7 @@ if __name__ == '__main__':
 	parser.add_option('-d', '--device', type=int, metavar='I', help='The device to use for the measurement')
 	parser.add_option('-s', '--mem-size', type=int, metavar='BYTE', help='Memory size in byte')
 	parser.add_option('-t', '--type', default='float', metavar='TYPE', help='The basic scalar type to use')
+	parser.add_option('-e', '--struct-elems', type=int, metavar='N', help='Use a struct of N elems of the basic scalar type')
 
 	(args, rem) = parser.parse_args()
 
@@ -42,11 +43,15 @@ if __name__ == '__main__':
 
 	datapoints = []
 
-	datatype = getType(args.type)
+	scalar_type = getType(args.type)
+	if args.struct_elems:
+		data_type = Struct(scalar_type, args.struct_elems)
+	else:
+		data_type = scalar_type
 
 	print '#Type Bytes nanos (rel err) GB/s'
 	try:
-		datapoints.append(runner.benchmark(datatype))
+		datapoints.append(runner.benchmark(data_type))
 	except (cl.RuntimeError, cl.LogicError) as ex:
 		# On Apples OpenCL retrieving the profiling information sometimes seems to fail for no good reason
 		# In addition, sometimes the queue becomes invalid

@@ -18,10 +18,16 @@
 #
 # (c) 2011-2012 Matthias Bach <bach@compeng.uni-frankfurt.de>
 
-class Type:
+class Type(object):
 	def __init__(self, name, size):
 		self.name = name
 		self.size = size
+
+class Struct(Type):
+	def __init__(self, scalar, elems):
+		super(Struct, self).__init__('struct', scalar.size * elems)
+		self.scalar = scalar
+		self.elems = elems
 
 types = [
 	Type('char', 1),
