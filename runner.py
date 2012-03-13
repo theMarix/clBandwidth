@@ -77,8 +77,16 @@ class Runner:
 		extensions = self.device.extensions
 		return 'cl_khr_fp64' in extensions or 'cl_amd_fp64' in extensions
 
-	def createKernel(self, datatype, num_elems, plain_pointers = False):
-		generated_source = ''
+	def createKernel(self, datatype, num_elems, plain_pointers = False, SOA_stride = 0):
+		generated_source = '''
+#ifdef PLAIN_POINTERS
+#define WRITEABLE(type, p) type * p
+#define READONLY(type, p) type * p
+#else
+#define WRITEABLE(type, p) type * const restrict p
+#define READONLY(type, p) const type * const restrict p
+#endif
+'''
 
 		if isinstance(datatype, Struct):
 			scalar_name = datatype.scalar.name
@@ -91,16 +99,34 @@ class Runner:
 				i += 1
 			generated_source += '{0} e{1}'.format(scalar_name, datatype.elems - 1)
 			generated_source += '} Struct_t;\n'
-			scalar_name = 'Struct_t'
+
+			if SOA_stride:
+				generated_source += '#define SCALAR {0}\n'.format(scalar_name)
+				if SOA_stride < 0: # guess a stride
+					SOA_stride = num_elems
+				generated_source += '#define ENABLE_STRUCT\n'
+				generated_source += '#define SOA_STRIDE {0}\n'.format(SOA_stride)
+				generated_source += 'Struct_t peekStruct(__global READONLY(SCALAR, in), const size_t idx) { return (Struct_t) {'
+				for i in range(datatype.elems - 1):
+					generated_source += 'in[idx + SOA_STRIDE * {0}], '.format(i)
+				generated_source += 'in[idx + SOA_STRIDE * {0}]'.format(datatype.elems - 1)
+				generated_source += '}; };\n'
+				generated_source += 'void pokeStruct(__global WRITEABLE(SCALAR, out), const size_t idx, const Struct_t val) {'
+				for i in range(datatype.elems):
+					generated_source += 'out[idx + SOA_STRIDE * {0}] = val.e{0};'.format(i)
+				generated_source += '};\n'
+			else:
+				scalar_name = 'Struct_t'
+				generated_source += '#define SCALAR {0}\n'.format(scalar_name)
 		else:
 			scalar_name = datatype.name
+			generated_source += '#define SCALAR {0}\n'.format(scalar_name)
 
 		# not the strange way to send definitions to the kernel
 		# this is due to some weired error on OSX
 		generated_source += '''
-		#define SCALAR {0}
-		#define NUM_ELEMS {1}
-		'''.format(scalar_name, num_elems);
+		#define NUM_ELEMS {0}
+		'''.format(num_elems);
 		if plain_pointers:
 			generated_source += '#define PLAIN_POINTERS\n';
 
@@ -111,7 +137,10 @@ class Runner:
 		f = open('kernels.cl', 'r')
 		fstr = generated_source + "".join(f.readlines())
 		prg = cl.Program(self.ctx, fstr).build()
-		return prg.copyScalar;
+		if SOA_stride:
+			return prg.copySOA
+		else:
+			return prg.copyScalar;
 
 	def benchmark(self, datatype, mem_size = None, global_threads = None, local_threads = None, stride = None):
 		BENCH_RUNS = 10
@@ -129,7 +158,7 @@ class Runner:
 		elems = mem_size / datatype.size;
 		bytes_transferred = elems * datatype.size * 2
 
-		kernel = self.createKernel(datatype, elems)
+		kernel = self.createKernel(datatype, elems, SOA_stride = stride)
 
 		events = []
 		for i in range(BENCH_RUNS + WARMUP_RUNS):

@@ -60,14 +60,6 @@
  * Define all used macros
  */
 
-#ifdef PLAIN_POINTERS
-#define WRITEABLE(type, p) type * p
-#define READONLY(type, p) type * p
-#else
-#define WRITEABLE(type, p) type * const restrict p
-#define READONLY(type, p) const type * const restrict p
-#endif
-
 #ifdef BLOCKED_LOOP
 #define PARALLEL_FOR(i) \
 size_t i_blocking = (NUM_ELEMS + get_global_size(0) - 1) / get_global_size(0); \
@@ -87,5 +79,18 @@ __kernel void copyScalar(__global WRITEABLE(SCALAR, out), __global READONLY(SCAL
 	PARALLEL_FOR(i) {
 		out[i] = in[i];
 	}
-}
+};
 
+/*
+ * Struct kernels
+ */
+#ifdef ENABLE_STRUCT
+
+__kernel void copySOA(__global WRITEABLE(SCALAR, out), __global READONLY(SCALAR, in))
+{
+	PARALLEL_FOR(i) {
+		Struct_t tmp = peekStruct(in, i);
+		pokeStruct(out, i, tmp);
+	}
+};
+#endif

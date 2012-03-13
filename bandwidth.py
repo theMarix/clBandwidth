@@ -30,6 +30,7 @@ if __name__ == '__main__':
 	parser.add_option('-s', '--mem-size', type=int, metavar='BYTE', help='Memory size in byte')
 	parser.add_option('-t', '--type', default='float', metavar='TYPE', help='The basic scalar type to use')
 	parser.add_option('-e', '--struct-elems', type=int, metavar='N', help='Use a struct of N elems of the basic scalar type')
+	parser.add_option('--soa', default=False, action='store_true', help='Use SOA storage')
 
 	(args, rem) = parser.parse_args()
 
@@ -49,9 +50,13 @@ if __name__ == '__main__':
 	else:
 		data_type = scalar_type
 
+	bench_args = {}
+	if args.soa:
+		bench_args['stride'] = -1
+
 	print '#Type Bytes nanos (rel err) GB/s'
 	try:
-		datapoints.append(runner.benchmark(data_type))
+		datapoints.append(runner.benchmark(data_type, **bench_args))
 	except (cl.RuntimeError, cl.LogicError) as ex:
 		# On Apples OpenCL retrieving the profiling information sometimes seems to fail for no good reason
 		# In addition, sometimes the queue becomes invalid
