@@ -25,7 +25,7 @@ class Type(object):
 
 class Struct(Type):
 	def __init__(self, scalar, elems):
-		super(Struct, self).__init__('struct', scalar.size * elems)
+		super(Struct, self).__init__('struct_of_{0}_{1}'.format(elems, scalar.name), scalar.size * elems)
 		self.scalar = scalar
 		self.elems = elems
 
