@@ -31,7 +31,7 @@ DataPoint = namedtuple('DataPoint', 'kernel global_threads local_threads bytes_t
 
 class Runner:
 
-	def __init__(self, device = None, local_threads = None, global_threads = GLOBAL_THREADS, max_mem_size = MAX_MEM_SIZE):
+	def __init__(self, device = None, local_threads = None, global_threads = GLOBAL_THREADS, max_mem_size = MAX_MEM_SIZE, alternate_buffers = True):
 		if device != None:
 			platforms = cl.get_platforms()
 			if len(platforms) > 1:
@@ -49,9 +49,6 @@ class Runner:
 		print '#Memory size: {0} KiB'.format(self.device.global_mem_size / 1024)
 		print '#Maximum buffer size: {0} KiB'.format(self.device.max_mem_alloc_size / 1024)
 
-		self.in_buf = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY, max_mem_size)
-		self.out_buf = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, max_mem_size)
-
 		if local_threads == None:
 			if self.device.type == cl.device_type.CPU:
 				local_threads = 1
@@ -61,6 +58,14 @@ class Runner:
 		self.local_threads = local_threads
 		self.global_threads = global_threads
 		self.max_mem_size = max_mem_size
+
+		self.alternate_buffers = alternate_buffers
+		if self.alternate_buffers:
+			self.in_buf = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, max_mem_size)
+			self.out_buf = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, max_mem_size)
+		else:
+			self.in_buf = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY, max_mem_size)
+			self.out_buf = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, max_mem_size)
 
 	def hasDoublePrecisionSupport(self):
 		extensions = self.device.extensions
@@ -110,6 +115,10 @@ class Runner:
 			# you cannot call the function more than once for some unkown reason
 			event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf)
 			events.append(event)
+			if self.alternate_buffers:
+				tmp = self.out_buf
+				self.out_buf = self.in_buf
+				self.in_buf = tmp
 
 		cl.wait_for_events(events)
 
