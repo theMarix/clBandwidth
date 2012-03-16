@@ -22,12 +22,18 @@ class Type(object):
 	def __init__(self, name, size):
 		self.name = name
 		self.size = size
+	def __repr__(self):
+		return 'Type({0}, {1})'.format(self.name, self.size)
+	def __str__(self):
+		return self.name
 
 class Struct(Type):
 	def __init__(self, scalar, elems):
 		super(Struct, self).__init__('struct_of_{0}_{1}'.format(elems, scalar.name), scalar.size * elems)
 		self.scalar = scalar
 		self.elems = elems
+	def __repr__(self):
+		return 'Struct({0}, {1})'.format(repr(self.scalar), self.size)
 
 types = [
 	Type('char', 1),

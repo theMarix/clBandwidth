@@ -23,12 +23,10 @@ import numpy as np
 from collections import namedtuple
 
 from datatypes import *
+from data import *
 
 MAX_MEM_SIZE = 10 * 1024 * 1024 # 10 MiB
 LOCAL_THREADS = 128
-
-# Result of kernel invocation for a given set of parameters. time is in nanos, bandwidth in GB/s
-DataPoint = namedtuple('DataPoint', 'kernel global_threads local_threads bytes_transferred time time_std bandwidth')
 
 class Runner:
 
@@ -182,4 +180,4 @@ class Runner:
 		elapsed = np.mean(event_times)
 		elapsed_std = np.std(event_times)
 
-		return DataPoint(datatype.name, global_threads, local_threads, bytes_transferred, elapsed, elapsed_std, bytes_transferred / elapsed)
+		return DataPoint(datatype.name, global_threads, local_threads, stride, offset, bytes_transferred, elapsed, elapsed_std, bytes_transferred / elapsed)

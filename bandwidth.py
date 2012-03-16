@@ -23,6 +23,7 @@ import optparse
 
 from runner import *
 from datatypes import getType
+import data
 
 if __name__ == '__main__':
 	parser = optparse.OptionParser(description='Benchmark global memory bandwidth')
@@ -32,6 +33,7 @@ if __name__ == '__main__':
 	parser.add_option('-e', '--struct-elems', type=int, metavar='N', help='Use a struct of N elems of the basic scalar type')
 	parser.add_option('--soa', default=False, action='store_true', help='Use SOA storage')
 	parser.add_option('--offset', default=0, type=int, metavar='N', help='Offset (in elements) to use for array vs. buffer')
+	parser.add_option('-o', '--output-file', help='File to write the results to')
 
 	(args, rem) = parser.parse_args()
 
@@ -57,7 +59,6 @@ if __name__ == '__main__':
 	if args.offset:
 		bench_args['offset'] = args.offset
 
-	print '#Type Bytes nanos (rel err) GB/s'
 	try:
 		datapoints.append(runner.benchmark(data_type, **bench_args))
 	except (cl.RuntimeError, cl.LogicError) as ex:
@@ -65,6 +66,9 @@ if __name__ == '__main__':
 		# In addition, sometimes the queue becomes invalid
 		print 'Error benchmarking {0}: {1}'.format(args.type, ex)
 
-
-	for datapoint in datapoints:
-		print '{0.kernel} {0.bytes_transferred} {0.time:.0f} ({1:.1%}) {0.bandwidth}'.format(datapoint, datapoint.time_std / datapoint.time)
+	if args.output_file:
+		data.dump(args.output_file, datapoints)
+	else:
+		print '#Type Bytes nanos (rel err) GB/s'
+		for datapoint in datapoints:
+			print '{0.typename} {0.bytes_transferred} {0.time:.0f} ({1:.1%}) {0.bandwidth}'.format(datapoint, datapoint.time_std / datapoint.time)
