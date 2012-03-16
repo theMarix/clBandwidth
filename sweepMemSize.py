@@ -16,112 +16,61 @@
 # You should have received a copy of the GNU General Public License
 # along with clBandwidth.  If not, see <http://www.gnu.org/licenses/>.
 #
-# (c) 2011 Matthias Bach <bach@compeng.uni-frankfurt.de>
+# (c) 2011-2012 Matthias Bach <bach@compeng.uni-frankfurt.de>
 
 import pyopencl as cl
 import optparse
-import csv
+from progressbar import ProgressBar
 
 from runner import *
+from datatypes import getType
+import data
 
 if __name__ == '__main__':
 	parser = optparse.OptionParser(description='Benchmark global memory bandwidth')
 	parser.add_option('-d', '--device', type=int, metavar='I', help='The device to use for the measurement')
-	parser.add_option('-p', '--plot', action='store_true', default=False, help='Make a plot of the measurements')
-	parser.add_option('-e', '--plot-errorbars', action='store_true', default=False, help='Add error bars to the plot')
-	parser.add_option('-b', '--plot-marker', type=float, dest='plot_markers', action='append', metavar='GB/s', help='Add a marker to the plot at the given performance')
-	parser.add_option('-o', '--plot-file', metavar='FILE', help='File to store the plot in (Display if unset)')
-	parser.add_option('-g', '--global-threads', type=int, metavar='NUM', help='The number of global threads to use')
-	parser.add_option('-l', '--local-threads', type=int, metavar='NUM', help='The number of global threads to use')
-	parser.add_option('-m', '--mem-max-size', type=int, metavar='BYTE', help='Maximum memory size in bytes')
-	parser.add_option('-s', '--mem-step-size', type=int, default=192, metavar='BYTE', help='Memory step size in bytes')
-	parser.add_option('-k', '--kernel', metavar='KERNEL', default='copyDpSpinorFullSOARestricted', help='The kernel to benchmark')
-	parser.add_option('--progress', action='store_true', default=False, help='Display a progress bar while running kernels')
-	parser.add_option('--export', metavar='FILE', help='Export measurement results to a CSV file')
-	parser.add_option('--import', metavar='FILE', action='append', help='Import data from file instead of benchmarking', dest='imports')
+	parser.add_option('-m', '--max-mem-size', type=int, default=100*1024*1024, metavar='BYTE', help='Maximum memory size in byte')
+	parser.add_option('-n', '--min-mem-size', type=int, metavar='BYTE', default=1*1024*1024, help='Minimum memory size in byte')
+	parser.add_option('-s', '--step-mem-size', type=int, metavar='BYTE', default=1*1024*1024, help='Steps for memory size in byte')
+	parser.add_option('-t', '--type', default='float', metavar='TYPE', help='The basic scalar type to use')
+	parser.add_option('-e', '--struct-elems', type=int, metavar='N', help='Use a struct of N elems of the basic scalar type')
+	parser.add_option('--soa', default=False, action='store_true', help='Use SOA storage')
+	parser.add_option('-o', '--output-file', help='File to write the results to')
 
 	(args, rem) = parser.parse_args()
 
 	runner_args = {}
 	if args.device != None:
 		runner_args['device'] = args.device
-	if args.global_threads != None:
-		runner_args['global_threads'] = args.global_threads
-	if args.local_threads != None:
-		runner_args['local_threads'] = args.local_threads
-	if args.mem_max_size != None:
-		runner_args['max_mem_size'] = args.mem_max_size
+	runner_args['max_mem_size'] = args.max_mem_size
 
-	if args.imports == None: # no data file given, run benchmark
+	runner = Runner(**runner_args)
 
-		runner = Runner(**runner_args)
+	datapoints = []
 
-		if args.progress:
-			from progressbar import ProgressBar
-			progress = ProgressBar(maxval=runner.max_mem_size).start()
+	scalar_type = getType(args.type)
+	if args.struct_elems:
+		data_type = Struct(scalar_type, args.struct_elems)
+	else:
+		data_type = scalar_type
 
-		datapoints = []
+	bench_args = {}
+	if args.soa:
+		bench_args['stride'] = -1
 
-		for size in range(args.mem_step_size, runner.max_mem_size, args.mem_step_size):
-			try:
-				datapoints.append(runner.benchmark(args.kernel, mem_size = size))
-				if args.progress:
-					progress.update(size)
-			except (cl.RuntimeError, cl.LogicError) as ex:
-				# On Apples OpenCL retrieving the profiling information sometimes seems to fail for no good reason
-				# In addition, sometimes the queue becomes invalid
-				print 'Error benchmarking {0}: {1}'.format(kernel, ex)
+	progress = ProgressBar()
+	for size in progress(range(args.min_mem_size, args.max_mem_size, args.step_mem_size)):
+		bench_args['mem_size'] = size
+		try:
+			datapoints.append(runner.benchmark(data_type, **bench_args))
+		except (cl.RuntimeError, cl.LogicError) as ex:
+			# On Apples OpenCL retrieving the profiling information sometimes seems to fail for no good reason
+			# In addition, sometimes the queue becomes invalid
+			print 'Error benchmarking {0}: {1}'.format(args.type, ex)
 
-		if args.progress:
-			progress.finish()
-
-		print '#Kernel Bytes nanos (rel err) GB/s'
+	if args.output_file:
+		data.dump(args.output_file, datapoints)
+	else:
+		print '#Type Bytes nanos (rel err) GB/s'
 		for datapoint in datapoints:
-			print '{0.kernel} {0.bytes_transferred} {0.time:.0f} ({1:.1%}) {0.bandwidth}'.format(datapoint, datapoint.time_std / datapoint.time)
-
-		if args.export != None:
-			writer = csv.writer(open(args.export, 'wb'), quoting=csv.QUOTE_MINIMAL)
-			writer.writerow(datapoints[0]._fields)
-			writer.writerows(datapoints)
-
-		to_plot = [datapoints]
-
-	else: # data file(s) given. import
-
-		to_plot = []
-		for file in args.imports:
-			reader = csv.reader(open(file, 'rb'))
-			reader.next() # skip headers
-			to_plot.append(map(DataPoint._make, reader))
-
-	if args.plot:
-		import matplotlib.pyplot as plt # by including it here we won't need it unless we want to plot
-
-		plots = []
-		for datapoints in to_plot:
-			bandwidths = map(lambda p: p.bandwidth, datapoints)
-			sizes = map(lambda p: p.bytes_transferred, datapoints)
-			if args.plot_errorbars:
-				errs = map(lambda p: p.time_std / p.time * p.bandwidth, datapoints)
-
-			if args.plot_errorbars:
-				plots.append(plt.errorbar(sizes, bandwidths, yerr=errs, fmt='.', ecolor='black'))
-			else:
-				plots.append(plt.plot(sizes, bandwidths, '.'))
-
-		if args.imports == None:
-			plt.title('Global Memory Bandwidth of {0}'.format(args.kernel))
-		else:
-			plt.legend(plots, args.imports, loc='lower right')
-		plt.xlabel('Transferred Bytes')
-		plt.ylabel('GB/s')
-
-		# handle markers
-		if args.plot_markers:
-			for marker in args.plot_markers:
-				plt.axhline(y=marker, color='r')
-
-		if args.plot_file:
-			plt.savefig(args.plot_file)
-		else:
-			plt.show()
+			print '{0.typename} {0.bytes_transferred} {0.time:.0f} ({1:.1%}) {0.bandwidth}'.format(datapoint, datapoint.time_std / datapoint.time)
