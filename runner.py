@@ -155,7 +155,12 @@ class Runner:
 		if not mem_size:
 			mem_size = self.max_mem_size
 
-		elems = mem_size / datatype.size - offset;
+		# make sure we don't run out of bounds
+		# TODO stride must be handled here
+		if mem_size + datatype.size * offset > self.max_mem_size:
+			mem_size = self.max_mem_size - datatype.size * offset
+
+		elems = mem_size / datatype.size;
 		bytes_transferred = elems * datatype.size * 2
 
 		kernel = self.createKernel(datatype, elems, SOA_stride = stride, offset = offset)
