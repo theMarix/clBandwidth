@@ -156,9 +156,10 @@ class Runner:
 			mem_size = self.max_mem_size
 
 		# make sure we don't run out of bounds
-		# TODO stride must be handled here
 		if mem_size + datatype.size * offset > self.max_mem_size:
 			mem_size = self.max_mem_size - datatype.size * offset
+		if stride * datatype.size > self.max_mem_size:
+			raise Exception('Stride to large for selected buffer size')
 
 		elems = mem_size / datatype.size;
 		bytes_transferred = elems * datatype.size * 2
