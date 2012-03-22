@@ -45,7 +45,7 @@ if __name__ == '__main__':
 	if args.device != None:
 		runner_args['device'] = args.device
 	if args.mem_size:
-		runner_args['max_mem_size'] = args.mem_size
+		runner_args['default_mem_size'] = args.mem_size
 
 	runner = Runner(**runner_args)
 
@@ -62,7 +62,7 @@ if __name__ == '__main__':
 		bench_args['stride'] = -1
 
 	# make sure all runs are the same size
-	mem_size = runner.max_mem_size - args.max_offset * data_type.size
+	mem_size = runner.default_mem_size - args.max_offset * data_type.size
 
 	progress = ProgressBar(not args.progress)
 	for offset in progress(range(args.min_offset, args.max_offset, args.increment_offset)):

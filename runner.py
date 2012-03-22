@@ -25,12 +25,12 @@ from collections import namedtuple
 from datatypes import *
 from data import *
 
-MAX_MEM_SIZE = 10 * 1024 * 1024 # 10 MiB
+DEFAULT_MEM_SIZE = 10 * 1024 * 1024 # 10 MiB
 LOCAL_THREADS = 128
 
 class Runner:
 
-	def __init__(self, device = None, local_threads = None, global_threads = None, max_mem_size = MAX_MEM_SIZE, alternate_buffers = True):
+	def __init__(self, device = None, local_threads = None, global_threads = None, default_mem_size = DEFAULT_MEM_SIZE, alternate_buffers = True):
 		if device != None:
 			platforms = cl.get_platforms()
 			if len(platforms) > 1:
@@ -61,15 +61,9 @@ class Runner:
 
 		self.local_threads = local_threads
 		self.global_threads = global_threads
-		self.max_mem_size = max_mem_size
+		self.default_mem_size = default_mem_size
 
 		self.alternate_buffers = alternate_buffers
-		if self.alternate_buffers:
-			self.in_buf = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, max_mem_size)
-			self.out_buf = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, max_mem_size)
-		else:
-			self.in_buf = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY, max_mem_size)
-			self.out_buf = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, max_mem_size)
 
 	def hasDoublePrecisionSupport(self):
 		extensions = self.device.extensions
@@ -102,8 +96,6 @@ class Runner:
 
 			if SOA_stride:
 				generated_source += '#define SCALAR {0}\n'.format(scalar_name)
-				if SOA_stride < 0: # guess a stride
-					SOA_stride = num_elems
 				generated_source += '#define ENABLE_STRUCT\n'
 				generated_source += '#define SOA_STRIDE {0}\n'.format(SOA_stride)
 				generated_source += 'Struct_t peekStruct(__global READONLY(SCALAR, in), const size_t idx);\n'
@@ -153,16 +145,25 @@ class Runner:
 		if not local_threads:
 			local_threads = self.local_threads
 		if not mem_size:
-			mem_size = self.max_mem_size
-
-		# make sure we don't run out of bounds
-		if mem_size + datatype.size * offset > self.max_mem_size:
-			mem_size = self.max_mem_size - datatype.size * offset
-		if stride * datatype.size > self.max_mem_size:
-			raise Exception('Stride to large for selected buffer size')
+			mem_size = self.default_mem_size
 
 		elems = mem_size / datatype.size;
 		bytes_transferred = elems * datatype.size * 2
+
+		if stride < 0:
+			stride = self._guessStride(datatype, elems)
+
+		if stride:
+			required_buf_size = (offset + stride) * datatype.size
+		else:
+			required_buf_size = mem_size + datatype.size * offset
+
+		if self.alternate_buffers:
+			in_buf = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, required_buf_size)
+			out_buf = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, required_buf_size)
+		else:
+			in_buf = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY, required_buf_size)
+			out_buf = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, required_buf_size)
 
 		kernel = self.createKernel(datatype, elems, SOA_stride = stride, offset = offset)
 
@@ -171,14 +172,18 @@ class Runner:
 			# Kernel launching logic
 			# This was supposed to be in an own function, but when you return the events
 			# you cannot call the function more than once for some unkown reason
-			event = kernel(self.queue, (global_threads,), (local_threads,), self.out_buf, self.in_buf)
+			event = kernel(self.queue, (global_threads,), (local_threads,), out_buf, in_buf)
 			events.append(event)
 			if self.alternate_buffers:
-				tmp = self.out_buf
-				self.out_buf = self.in_buf
-				self.in_buf = tmp
+				tmp = out_buf
+				out_buf = in_buf
+				in_buf = tmp
 
 		cl.wait_for_events(events)
+
+		# clean up memory
+		in_buf.release()
+		out_buf.release()
 
 		# throw away warmup runs
 		events = events[WARMUP_RUNS:]
@@ -187,3 +192,7 @@ class Runner:
 		elapsed_std = np.std(event_times)
 
 		return DataPoint(datatype.name, global_threads, local_threads, stride, offset, bytes_transferred, elapsed, elapsed_std, bytes_transferred / elapsed)
+
+	def _guessStride(self, datatype, elems):
+		# TODO do an intelligent guess
+		return elems

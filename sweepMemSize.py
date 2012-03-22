@@ -43,7 +43,6 @@ if __name__ == '__main__':
 	runner_args = {}
 	if args.device != None:
 		runner_args['device'] = args.device
-	runner_args['max_mem_size'] = args.max_mem_size
 
 	runner = Runner(**runner_args)
 

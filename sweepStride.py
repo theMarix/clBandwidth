@@ -45,7 +45,7 @@ if __name__ == '__main__':
 	if args.device != None:
 		runner_args['device'] = args.device
 	if args.mem_size:
-		runner_args['max_mem_size'] = args.mem_size
+		runner_args['default_mem_size'] = args.mem_size
 
 	runner = Runner(**runner_args)
 
@@ -57,7 +57,7 @@ if __name__ == '__main__':
 	bench_args = {}
 
 	# make sure all runs are the same size
-	mem_size = runner.max_mem_size - args.max_add_stride * data_type.size # data_type.size is the same as elems time the basic type
+	mem_size = runner.default_mem_size - args.max_add_stride * data_type.size # data_type.size is the same as elems time the basic type
 	bench_args['mem_size'] = mem_size
 	elems = mem_size / data_type.size
 
