@@ -20,7 +20,7 @@
 
 import pyopencl as cl
 import optparse
-from progressbar import ProgressBar
+from progress import ProgressBar
 
 from runner import *
 from datatypes import getType
@@ -37,6 +37,7 @@ if __name__ == '__main__':
 	parser.add_option('-t', '--type', default='float', metavar='TYPE', help='The basic scalar type to use')
 	parser.add_option('-e', '--struct-elems', type=int, default=2, metavar='N', help='Use a struct of N elems of the basic scalar type')
 	parser.add_option('-o', '--output-file', help='File to write the results to')
+	parser.add_option('-p', '--progress', default=False, action='store_true', help='Show a progress indicator')
 
 	(args, rem) = parser.parse_args()
 
@@ -60,7 +61,7 @@ if __name__ == '__main__':
 	bench_args['mem_size'] = mem_size
 	elems = mem_size / data_type.size
 
-	progress = ProgressBar()
+	progress = ProgressBar(not args.progress)
 	for add_stride in progress(range(args.min_add_stride, args.max_add_stride, args.increment_stride)):
 		bench_args['stride'] = elems + add_stride
 		try:

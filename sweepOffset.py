@@ -20,7 +20,7 @@
 
 import pyopencl as cl
 import optparse
-from progressbar import ProgressBar
+from progress import ProgressBar
 
 from runner import *
 from datatypes import getType
@@ -37,6 +37,7 @@ if __name__ == '__main__':
 	parser.add_option('-e', '--struct-elems', type=int, metavar='N', help='Use a struct of N elems of the basic scalar type')
 	parser.add_option('--soa', default=False, action='store_true', help='Use SOA storage')
 	parser.add_option('-o', '--output-file', help='File to write the results to')
+	parser.add_option('-p', '--progress', default=False, action='store_true', help='Show a progress indicator')
 
 	(args, rem) = parser.parse_args()
 
@@ -63,7 +64,7 @@ if __name__ == '__main__':
 	# make sure all runs are the same size
 	mem_size = runner.max_mem_size - args.max_offset * data_type.size
 
-	progress = ProgressBar()
+	progress = ProgressBar(not args.progress)
 	for offset in progress(range(args.min_offset, args.max_offset, args.increment_offset)):
 		bench_args['mem_size'] = mem_size
 		bench_args['offset'] = offset
