@@ -80,6 +80,10 @@ class Runner:
 #endif
 '''
 
+		# check if double support ist required
+		if datatype.name.startswith('double') or (isinstance(datatype, Struct) and datatype.scalar.name.startswith('double')):
+			generated_source += '#define ENABLE_DOUBLE\n'
+
 		generated_source += '#define OFFSET {0}\n'.format(offset)
 
 		if isinstance(datatype, Struct):
