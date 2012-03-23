@@ -92,10 +92,8 @@ class Runner:
 			generated_source += '''
 			typedef struct Struct_s {
 			'''
-			for i in range(datatype.elems - 1):
+			for i in range(datatype.elems):
 				generated_source += '{0} e{1};\n'.format(scalar_name, i)
-				i += 1
-			generated_source += '{0} e{1}'.format(scalar_name, datatype.elems - 1)
 			generated_source += '} Struct_t;\n'
 
 			if SOA_stride:
