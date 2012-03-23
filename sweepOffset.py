@@ -71,7 +71,7 @@ if __name__ == '__main__':
 				# On Apples OpenCL retrieving the profiling information sometimes seems to fail for no good reason
 				# In addition, sometimes the queue becomes invalid
 				print 'Error benchmarking {0}: {1}'.format(args.type, ex)
-	except cl.MemoryError:
+	except (cl.MemoryError, cl.LogicError):
 		print 'Not enough memory, dumping already collected results.'
 
 	if args.output_file:

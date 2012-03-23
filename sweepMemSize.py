@@ -62,13 +62,8 @@ if __name__ == '__main__':
 	try:
 		for size in progress(range(args.min_mem_size, args.max_mem_size, args.step_mem_size)):
 			bench_args['mem_size'] = size
-			try:
-				datapoints.append(runner.benchmark(data_type, **bench_args))
-			except (cl.RuntimeError, cl.LogicError) as ex:
-				# On Apples OpenCL retrieving the profiling information sometimes seems to fail for no good reason
-				# In addition, sometimes the queue becomes invalid
-				print 'Error benchmarking {0}: {1}'.format(args.type, ex)
-	except cl.MemoryError:
+			datapoints.append(runner.benchmark(data_type, **bench_args))
+	except (cl.MemoryError, cl.LogicError):
 		print 'Not enough memory, dumping already collected results.'
 
 	if args.output_file:
