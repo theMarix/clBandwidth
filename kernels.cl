@@ -40,23 +40,6 @@
  */
 
 /*
- * Enable double if requested.
- * There might theoretically be implementation specific issues caused by an enabled
- * double precision support, making it optional allows to easily check.
- */
-#ifdef ENABLE_DOUBLE
-#ifdef cl_khr_fp64
-#pragma OPENCL EXTENSION cl_khr_fp64 : enable
-#define DOUBLE_ENABLED
-#else /* cl_khr_fp64 */
-#ifdef cl_amd_fp64
-#pragma OPENCL EXTENSION cl_amd_fp64 : enable
-#define DOUBLE_ENABLED
-#endif /* cl_amd_fp64 */
-#endif /* cl_khr_fp64 */
-#endif
-
-/*
  * Define all used macros
  */
 

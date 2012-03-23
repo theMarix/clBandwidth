@@ -84,6 +84,25 @@ class Runner:
 		if datatype.name.startswith('double') or (isinstance(datatype, Struct) and datatype.scalar.name.startswith('double')):
 			generated_source += '#define ENABLE_DOUBLE\n'
 
+			generated_source += '''
+/*
+ * Enable double if requested.
+ * There might theoretically be implementation specific issues caused by an enabled
+ * double precision support, making it optional allows to easily check.
+ */
+#ifdef ENABLE_DOUBLE
+#ifdef cl_khr_fp64
+#pragma OPENCL EXTENSION cl_khr_fp64 : enable
+#define DOUBLE_ENABLED
+#else /* cl_khr_fp64 */
+#ifdef cl_amd_fp64
+#pragma OPENCL EXTENSION cl_amd_fp64 : enable
+#define DOUBLE_ENABLED
+#endif /* cl_amd_fp64 */
+#endif /* cl_khr_fp64 */
+#endif
+'''
+
 		generated_source += '#define OFFSET {0}\n'.format(offset)
 
 		if isinstance(datatype, Struct):
