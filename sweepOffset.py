@@ -61,12 +61,8 @@ if __name__ == '__main__':
 	if args.soa:
 		bench_args['stride'] = -1
 
-	# make sure all runs are the same size
-	mem_size = runner.default_mem_size - args.max_offset * data_type.size
-
 	progress = ProgressBar(not args.progress)
 	for offset in progress(range(args.min_offset, args.max_offset, args.increment_offset)):
-		bench_args['mem_size'] = mem_size
 		bench_args['offset'] = offset
 		try:
 			datapoints.append(runner.benchmark(data_type, **bench_args))

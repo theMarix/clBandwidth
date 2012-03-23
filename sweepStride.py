@@ -57,9 +57,7 @@ if __name__ == '__main__':
 	bench_args = {}
 
 	# make sure all runs are the same size
-	mem_size = runner.default_mem_size - args.max_add_stride * data_type.size # data_type.size is the same as elems time the basic type
-	bench_args['mem_size'] = mem_size
-	elems = mem_size / data_type.size
+	elems = runner.default_mem_size / data_type.size
 
 	progress = ProgressBar(not args.progress)
 	for add_stride in progress(range(args.min_add_stride, args.max_add_stride, args.increment_stride)):
