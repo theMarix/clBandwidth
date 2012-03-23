@@ -60,14 +60,17 @@ if __name__ == '__main__':
 	elems = runner.default_mem_size / data_type.size
 
 	progress = ProgressBar(not args.progress)
-	for add_stride in progress(range(args.min_add_stride, args.max_add_stride, args.increment_stride)):
-		bench_args['stride'] = elems + add_stride
-		try:
-			datapoints.append(runner.benchmark(data_type, **bench_args))
-		except (cl.RuntimeError, cl.LogicError) as ex:
-			# On Apples OpenCL retrieving the profiling information sometimes seems to fail for no good reason
-			# In addition, sometimes the queue becomes invalid
-			print 'Error benchmarking {0}: {1}'.format(args.type, ex)
+	try:
+		for add_stride in progress(range(args.min_add_stride, args.max_add_stride, args.increment_stride)):
+			bench_args['stride'] = elems + add_stride
+			try:
+				datapoints.append(runner.benchmark(data_type, **bench_args))
+			except (cl.RuntimeError, cl.LogicError) as ex:
+				# On Apples OpenCL retrieving the profiling information sometimes seems to fail for no good reason
+				# In addition, sometimes the queue becomes invalid
+				print 'Error benchmarking {0}: {1}'.format(args.type, ex)
+	except cl.MemoryError:
+		print 'Not enough memory, dumping already collected results.'
 
 	if args.output_file:
 		data.dump(args.output_file, datapoints)
