@@ -27,7 +27,7 @@ from datatypes import getType
 import data
 
 if __name__ == '__main__':
-	parser = optparse.OptionParser(description='Benchmark global memory bandwidth')
+	parser = optparse.OptionParser(description='Benchmark global memory bandwidth for multiple memory sizes')
 	parser.add_option('-d', '--device', type=int, metavar='I', help='The device to use for the measurement')
 	parser.add_option('-m', '--max-mem-size', type=int, default=100*1024*1024, metavar='BYTE', help='Maximum memory size in byte')
 	parser.add_option('-n', '--min-mem-size', type=int, metavar='BYTE', default=1*1024*1024, help='Minimum memory size in byte')

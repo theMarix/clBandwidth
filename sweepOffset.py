@@ -27,7 +27,7 @@ from datatypes import getType
 import data
 
 if __name__ == '__main__':
-	parser = optparse.OptionParser(description='Benchmark global memory bandwidth')
+	parser = optparse.OptionParser(description='Benchmark global memory bandwidth dependence on access offset to buffer start')
 	parser.add_option('-d', '--device', type=int, metavar='I', help='The device to use for the measurement')
 	parser.add_option('-s', '--mem-size', type=int, metavar='BYTE', help='Memory size in byte')
 	parser.add_option('-m', '--max-offset', type=int, default=1024, metavar='BYTE', help='Maximum memory offset in elements')
