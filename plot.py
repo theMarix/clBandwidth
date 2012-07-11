@@ -57,14 +57,14 @@ if __name__ == '__main__':
 
 	for dataset, label in zip(datasets, args.labels):
 		xvals, yvals = zip(*[(getattr(val, args.xaxis), val.bandwidth) for val in dataset])
-		plt.plot(xvals, yvals, label=label)
+		plt.plot(xvals, yvals, '.', markersize=10, label=label)
 
 	if args.title:
 		plt.title(args.title)
 	plt.ylabel('Bandwidth GB/s')
 	plt.xlabel(args.xlabel)
 
-	plt.legend()
+	plt.legend(loc=0)
 
 	if args.output:
 		plt.savefig(args.output)
