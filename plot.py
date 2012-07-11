@@ -57,8 +57,6 @@ if __name__ == '__main__':
 	fig = plt.figure(figsize=(10,4))
 
 	for dataset, label in zip(datasets, args.labels):
-		for val in dataset:
-			print getattr(val, args.xaxis)
 		xvals, yvals = zip(*[(int(getattr(val, args.xaxis)) / args.xscale, val.bandwidth) for val in dataset])
 		plt.plot(xvals, yvals, '.', markersize=10, label=label)
 
