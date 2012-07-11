@@ -31,6 +31,7 @@ if __name__ == '__main__':
 	parser.add_argument('--labels', metavar='LABEL', nargs='*', help='Labels to mark the line from each input file.')
 	parser.add_argument('--xaxis', default='bytes_transferred', help='Value to use for the x axis. Should be one of bytes_transferred (default), stride or offset')
 	parser.add_argument('--xlabel', help='Label to use for the xaxis. Otherwise the value of --xaxis is used')
+	parser.add_argument('--xscale', type=float, default=1, help='Rescale x axis by the given value')
 	parser.add_argument('--title', help='Title to add to the plot')
 	parser.add_argument('--output', metavar='FILE', help='Plot to the given file instead of the screen')
 
@@ -56,7 +57,9 @@ if __name__ == '__main__':
 	fig = plt.figure(figsize=(10,4))
 
 	for dataset, label in zip(datasets, args.labels):
-		xvals, yvals = zip(*[(getattr(val, args.xaxis), val.bandwidth) for val in dataset])
+		for val in dataset:
+			print getattr(val, args.xaxis)
+		xvals, yvals = zip(*[(int(getattr(val, args.xaxis)) / args.xscale, val.bandwidth) for val in dataset])
 		plt.plot(xvals, yvals, '.', markersize=10, label=label)
 
 	if args.title:
