@@ -212,7 +212,14 @@ class Runner:
 		elapsed = np.mean(event_times)
 		elapsed_std = np.std(event_times)
 
-		return DataPoint(datatype.name, global_threads, local_threads, stride, offset, bytes_transferred, elapsed, elapsed_std, bytes_transferred / elapsed)
+		if isinstance(datatype, Struct):
+			stride_bytes = stride * datatype.scalar.size
+			offset_bytes = offset * datatype.scalar.size
+		else:
+			stride_bytes = stride * datatype.size
+			offset_bytes = offset * datatype.size
+
+		return DataPoint(datatype.name, global_threads, local_threads, stride, stride_bytes, offset, offset_bytes, bytes_transferred, elapsed, elapsed_std, bytes_transferred / elapsed)
 
 	def _guessStride(self, datatype, elems):
 		# TODO do an intelligent guess
