@@ -31,9 +31,9 @@ if __name__ == '__main__':
 	parser = optparse.OptionParser(description='Benchmark global memory bandwidth')
 	parser.add_option('-d', '--device', type=int, metavar='I', help='The device to use for the measurement')
 	parser.add_option('-s', '--mem-size', type=int, metavar='BYTE', help='Memory size in byte')
-	parser.add_option('-m', '--max-add-stride', type=int, default=1024, metavar='BYTE', help='Maximum additional memory stride in elements')
-	parser.add_option('-n', '--min-add-stride', type=int, metavar='BYTE', default=0, help='Minimum additional memory stride in elements')
-	parser.add_option('-i', '--increment-stride', type=int, metavar='BYTE', default=1, help='Steps for memory stride in elements')
+	parser.add_option('-m', '--max-add-stride', type=int, default=1024, metavar='ELEMS', help='Maximum additional memory stride in elements')
+	parser.add_option('-n', '--min-add-stride', type=int, metavar='ELEMS', default=0, help='Minimum additional memory stride in elements')
+	parser.add_option('-i', '--increment-stride', type=int, metavar='ELEMS', default=1, help='Steps for memory stride in elements')
 	parser.add_option('-t', '--type', default='float', metavar='TYPE', help='The basic scalar type to use')
 	parser.add_option('-e', '--struct-elems', type=int, default=2, metavar='N', help='Use a struct of N elems of the basic scalar type')
 	parser.add_option('-o', '--output-file', help='File to write the results to')
@@ -75,7 +75,7 @@ if __name__ == '__main__':
 	if args.output_file:
 		data.dump(args.output_file, datapoints)
 	else:
-		print '#Type Transferred/Bytes Offset/Elems nanos (rel err) GB/s'
+		print '#Type Transferred/Bytes Stride/Elems nanos (rel err) GB/s'
 		for datapoint in datapoints:
 			print '{0.typename} {0.bytes_transferred} {0.stride} {0.time:.0f} ({1:.1%}) {0.bandwidth}'.format(datapoint, datapoint.time_std / datapoint.time)
 
