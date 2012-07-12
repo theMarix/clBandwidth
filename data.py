@@ -22,7 +22,10 @@ import csv
 from collections import namedtuple
 
 # Result of kernel invocation for a given set of parameters. stride and offset in elements, time is in nanos, bandwidth in GB/s
-DataPoint = namedtuple('DataPoint', 'typename global_threads local_threads stride stride_bytes offset offset_bytes bytes_transferred time time_std bandwidth')
+# input_bytes is the actually used part of the input buffer in bytes
+# output_bytes is the actually used part of the input buffer in bytes
+# note that if a kernel performs multiple passes of the data input_bytes + output_bytes != bytes_transferred
+DataPoint = namedtuple('DataPoint', 'typename global_threads local_threads stride stride_bytes offset offset_bytes input_bytes output_bytes bytes_transferred time time_std bandwidth')
 
 def dump(filename, data):
 	writer = csv.writer(open(filename, 'wb'), quoting=csv.QUOTE_MINIMAL)

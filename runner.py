@@ -222,7 +222,7 @@ class Runner:
 			stride_bytes = stride * datatype.size
 			offset_bytes = offset * datatype.size
 
-		return DataPoint(datatype.name, global_threads, local_threads, stride, stride_bytes, offset, offset_bytes, bytes_transferred, elapsed, elapsed_std, bytes_transferred / elapsed)
+		return DataPoint(datatype.name, global_threads, local_threads, stride, stride_bytes, offset, offset_bytes, elems * datatype.size, elems * datatype.size, bytes_transferred, elapsed, elapsed_std, bytes_transferred / elapsed)
 
 	def _guessStride(self, datatype, elems):
 		# TODO do an intelligent guess
