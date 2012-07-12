@@ -19,9 +19,11 @@ Usage
 
 There are multiple scripts to choose from. For each script you will get additional invocation options by invoking it with ``--help``:
 
- * ``bandwidth.py`` – Compare the achievable bandwidth of multiple data types for a given memory size.
- * ``memsize.py`` – Check the effect of memory size on the performance of a data-type.
- * ``stride.py`` – Check the effect of different strides for SOA datatypes
+ * ``bandwidth.py`` -- Compare the achievable bandwidth of multiple data types for a given memory size.
+ * ``memsize.py`` -- Check the effect of memory size on the performance of a data-type.
+ * ``offset.py`` -- Check the effect of different offsets into the buffer on performance of a data-type.
+ * ``stride.py`` -- Check the effect of different strides for SOA datatypes
+ * ``plot.py`` -- Plot data from the CSV files dumped by the measurement scripts
 
 License
 -------
@@ -39,4 +41,4 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with clBandwidth.  If not, see [http://www.gnu.org/licenses/](http://www.gnu.org/licenses/).
 
-&copy; 2011-2012 Matthias Bach <bach@compeng.uni-frankfurt.de>
+&copy; 2011--2012 Matthias Bach <bach@compeng.uni-frankfurt.de>
