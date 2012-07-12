@@ -21,6 +21,7 @@
 import pyopencl as cl
 import numpy as np
 from collections import namedtuple
+import os.path as path
 
 from datatypes import *
 from data import *
@@ -149,7 +150,9 @@ class Runner:
 		if self.device.type == cl.device_type.CPU:
 			generated_source += '#define BLOCKED_LOOP\n'
 
-		f = open('kernels.cl', 'r')
+
+		base_folder = path.dirname(__file__)
+		f = open(path.join(base_folder, 'kernels.cl'), 'r')
 		fstr = generated_source + "".join(f.readlines())
 		prg = cl.Program(self.ctx, fstr).build()
 		if SOA_stride:
