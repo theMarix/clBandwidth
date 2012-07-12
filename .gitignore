@@ -4,3 +4,5 @@
 
 # Ignore python compiler output
 *.pyc
+# Ignore markdown generated files
+README.html
