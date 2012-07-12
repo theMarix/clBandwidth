@@ -24,6 +24,7 @@ There are multiple scripts to choose from. For each script you will get addition
  * ``offset.py`` -- Check the effect of different offsets into the buffer on performance of a data-type.
  * ``stride.py`` -- Check the effect of different strides for SOA datatypes
  * ``plot.py`` -- Plot data from the CSV files dumped by the measurement scripts
+ * ``histogram.py``-- Create a histogram from the CSV files dumped by the measurement scripts
 
 License
 -------
