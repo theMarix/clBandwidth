@@ -57,10 +57,10 @@ if __name__ == '__main__':
 
 	# create the plot
 	fig = plt.figure(figsize=(10,4))
-
 	for dataset, label, marker in zip(datasets, args.labels, MARKERS):
 		xvals, yvals = zip(*[(int(getattr(val, args.xaxis)) / args.xscale, val.bandwidth) for val in dataset])
 		plt.plot(xvals, yvals, marker, label=label)
+	plt.ylim(ymin=0)
 
 	if args.title:
 		plt.title(args.title)
