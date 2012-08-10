@@ -67,9 +67,13 @@ if __name__ == '__main__':
 	plt.ylabel('Bandwidth GB/s')
 	plt.xlabel(args.xlabel)
 
-	leg = plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+	extra_artists = []
+
+	if len(args.labels) > 1:
+		leg = plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+		extra_artists.append(leg)
 
 	if args.output:
-		plt.savefig(args.output, bbox_inches='tight', bbox_extra_artists=[leg])
+		plt.savefig(args.output, bbox_inches='tight', bbox_extra_artists=extra_artists)
 	else:
 		plt.show()
