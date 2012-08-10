@@ -24,6 +24,8 @@ import numpy as np
 
 import data
 
+MARKERS = ['o'] * 7 + ['D'] * 7 + ['p'] * 7
+
 if __name__ == '__main__':
 	# parse the user request
 	parser = argparse.ArgumentParser(description='Plot memory bandwidth')
@@ -56,18 +58,18 @@ if __name__ == '__main__':
 	# create the plot
 	fig = plt.figure(figsize=(10,4))
 
-	for dataset, label in zip(datasets, args.labels):
+	for dataset, label, marker in zip(datasets, args.labels, MARKERS):
 		xvals, yvals = zip(*[(int(getattr(val, args.xaxis)) / args.xscale, val.bandwidth) for val in dataset])
-		plt.plot(xvals, yvals, '.', markersize=10, label=label)
+		plt.plot(xvals, yvals, marker, label=label)
 
 	if args.title:
 		plt.title(args.title)
 	plt.ylabel('Bandwidth GB/s')
 	plt.xlabel(args.xlabel)
 
-	plt.legend(loc=0)
+	leg = plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
 
 	if args.output:
-		plt.savefig(args.output)
+		plt.savefig(args.output, bbox_inches='tight', bbox_extra_artists=[leg])
 	else:
 		plt.show()
