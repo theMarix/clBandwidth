@@ -18,6 +18,8 @@
 #
 # (c) 2011-2012 Matthias Bach <bach@compeng.uni-frankfurt.de>
 
+import re
+
 class Type(object):
 	def __init__(self, name, size):
 		self.name = name
@@ -31,7 +33,7 @@ class Struct(Type):
 	def __init__(self, scalar, elems):
 		super(Struct, self).__init__('struct_of_{0}_{1}'.format(elems, scalar.name), scalar.size * elems)
 		self.scalar = scalar
-		self.elems = elems
+		self.elems = int(elems, 10)
 	def __repr__(self):
 		return 'Struct({0}, {1})'.format(repr(self.scalar), self.size)
 
@@ -49,11 +51,18 @@ types = [
 	Type('double', 8)
 ];
 
-def getType(name):
+def getScalarType(name):
 	for cand in types:
 		if cand.name == name:
 			return cand
 	raise NameError('{0} is not a valid type name'.format(name))
+
+def getType(name):
+	struct_match = re.match(r'struct_of_(\d+)_(\w*)', name)
+	if struct_match:
+		return Struct(getScalarType(struct_match.group(2)), struct_match.group(1))
+	else:
+		return getScalarType(name)
 
 # module initialization
 

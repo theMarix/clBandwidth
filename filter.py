@@ -21,6 +21,8 @@
 import argparse
 
 import data
+import optimizer
+import datatypes
 
 if __name__ == '__main__':
 	# parse the user request
@@ -31,9 +33,12 @@ if __name__ == '__main__':
 	parser.add_argument('--max', type=float, help='Maximum value cutoff')
 	parser.add_argument('--mod', type=int, help='Only show lines where the value is a multiple of this value')
 	parser.add_argument('--max-error', type=float, help='Maximum error of the time measurement in percent')
+	parser.add_argument('--bad-strides', metavar='OPTIMIZER', help='Use the given optimizer to filter out bad strides')
 	parser.add_argument('-o', '--output', metavar='FILE', help='Dump to the given file instead of the screen')
 
 	args = parser.parse_args()
+
+	stride_optimizer = optimizer.getOptimizer(args.bad_strides) if args.bad_strides else None
 
 	# filter the data
 	dataset = [ val for val in data.load(args.file)
@@ -41,6 +46,7 @@ if __name__ == '__main__':
 	                and (args.max == None or float(getattr(val, args.metric)) < args.max)
 	                and (args.mod == None or int(getattr(val, args.metric)) % args.mod == 0)
 	                and (args.max_error == None or float(val.time_std) / float(val.time) * 100 < args.max_error)
+	                and (stride_optimizer == None or stride_optimizer.getStrideBadness(datatypes.getType(val.typename), int(val.stride_bytes)) == 0)
 	          ]
 
 	# dump
