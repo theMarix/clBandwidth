@@ -38,6 +38,7 @@ if __name__ == '__main__':
 	parser.add_option('-e', '--struct-elems', type=int, default=2, metavar='N', help='Use a struct of N elems of the basic scalar type')
 	parser.add_option('-o', '--output-file', help='File to write the results to')
 	parser.add_option('-p', '--progress', default=False, action='store_true', help='Show a progress indicator')
+	parser.add_option('--plain-pointers', default=False, action='store_true', help="Don't restrict pointers and mark them read-only.")
 
 	(args, rem) = parser.parse_args()
 
@@ -55,6 +56,8 @@ if __name__ == '__main__':
 	data_type = Struct(scalar_type, args.struct_elems)
 
 	bench_args = {}
+	if args.plain_pointers:
+		bench_args['plain_pointers'] = True
 
 	# make sure all runs are the same size
 	elems = runner.default_mem_size / data_type.size

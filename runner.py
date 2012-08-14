@@ -71,14 +71,18 @@ class Runner:
 		return 'cl_khr_fp64' in extensions or 'cl_amd_fp64' in extensions
 
 	def createKernel(self, datatype, num_elems, plain_pointers = False, SOA_stride = 0, offset = 0):
-		generated_source = '''
-#ifdef PLAIN_POINTERS
+		generated_source = ''
+
+		if plain_pointers:
+			generated_source += '#define PLAIN_POINTERS\n';
+			generated_source += '''
 #define WRITEABLE(type, p) type * p
 #define READONLY(type, p) type * p
-#else
+'''
+		else:
+			generated_source += '''
 #define WRITEABLE(type, p) type * const restrict p
 #define READONLY(type, p) const type * const restrict p
-#endif
 '''
 
 		# check if double support ist required
@@ -143,8 +147,6 @@ class Runner:
 		generated_source += '''
 		#define NUM_ELEMS {0}
 		'''.format(num_elems);
-		if plain_pointers:
-			generated_source += '#define PLAIN_POINTERS\n';
 
 		# TODO make choosable
 		if self.device.type == cl.device_type.CPU:
@@ -160,7 +162,7 @@ class Runner:
 		else:
 			return prg.copyScalar;
 
-	def benchmark(self, datatype, mem_size = None, global_threads = None, local_threads = None, stride = 0, offset = 0):
+	def benchmark(self, datatype, mem_size = None, global_threads = None, local_threads = None, stride = 0, offset = 0, plain_pointers = False):
 		BENCH_RUNS = 10
 		WARMUP_RUNS = 2
 
@@ -189,7 +191,7 @@ class Runner:
 			in_buf = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY, required_buf_size)
 			out_buf = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, required_buf_size)
 
-		kernel = self.createKernel(datatype, elems, SOA_stride = stride, offset = offset)
+		kernel = self.createKernel(datatype, elems, SOA_stride = stride, offset = offset, plain_pointers = plain_pointers)
 
 		events = []
 		for i in range(BENCH_RUNS + WARMUP_RUNS):
