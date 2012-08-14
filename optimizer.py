@@ -55,6 +55,15 @@ class CypressOptimizer(object):
 
 		return badness
 
+class CaymanOptimizer(CypressOptimizer):
+	""" An optimizer for Cayman GPUs """
+
+	def __init__(self):
+		self.CRITICAL_STRIDE = 32 * 1024
+		self.CRITICAL_STRIDE_RANGE = 768
+		self.OPTIMUM_OFFSET = 256
+
 _optimizers = {
-	'Cypress': CypressOptimizer()
+	'Cypress': CypressOptimizer(),
+	'Cayman': CaymanOptimizer()
 }
