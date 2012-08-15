@@ -33,7 +33,7 @@ class Struct(Type):
 	def __init__(self, scalar, elems):
 		super(Struct, self).__init__('struct_of_{0}_{1}'.format(elems, scalar.name), scalar.size * elems)
 		self.scalar = scalar
-		self.elems = int(elems, 10)
+		self.elems = int(elems)
 	def __repr__(self):
 		return 'Struct({0}, {1})'.format(repr(self.scalar), self.size)
 
