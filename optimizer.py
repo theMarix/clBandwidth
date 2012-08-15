@@ -63,7 +63,29 @@ class CaymanOptimizer(CypressOptimizer):
 		self.CRITICAL_STRIDE_RANGE = 768
 		self.OPTIMUM_OFFSET = 256
 
+class TahitiOptimizer(object):
+	""" An optimizer for Tahiti GPUs """
+
+	def __init__(self):
+		self.OPTIMUM_OFFSET = 512
+
+	def getAlignmentBadness(self, offset):
+		""" Calculate a badness value for the offset given in bytes """
+		return 1 if (offset % self.OPTIMUM_OFFSET) else 0
+
+	def getStrideBadness(self, datatype, stride):
+		""" Get a badness value for a given stride in bytes. """
+		if not isinstance(datatype, Struct):
+			raise Exception('Stride badness can only be calculated for struct types')
+
+		badness = self.getAlignmentBadness(stride)
+
+		# we don't know any fancy rules for the Tahiti GPUs, so just return the alignment value
+		return badness
+
+
 _optimizers = {
 	'Cypress': CypressOptimizer(),
-	'Cayman': CaymanOptimizer()
+	'Cayman': CaymanOptimizer(),
+	'Tahiti': TahitiOptimizer()
 }
