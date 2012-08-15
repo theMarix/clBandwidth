@@ -31,7 +31,7 @@ LOCAL_THREADS = 128
 
 class Runner:
 
-	def __init__(self, device = None, local_threads = None, global_threads = None, default_mem_size = DEFAULT_MEM_SIZE, alternate_buffers = True):
+	def __init__(self, device = None, local_threads = None, global_threads = None, default_mem_size = DEFAULT_MEM_SIZE, alternate_buffers = True, optimizer = None):
 		if device != None:
 			platforms = cl.get_platforms()
 			if len(platforms) > 1:
@@ -65,6 +65,8 @@ class Runner:
 		self.default_mem_size = default_mem_size
 
 		self.alternate_buffers = alternate_buffers
+
+		self.optimizer = optimizer
 
 	def hasDoublePrecisionSupport(self):
 		extensions = self.device.extensions
@@ -178,7 +180,6 @@ class Runner:
 
 		if stride < 0:
 			stride = self._guessStride(datatype, elems)
-
 		if stride:
 			required_buf_size = (offset + stride) * datatype.size
 		else:
@@ -227,5 +228,7 @@ class Runner:
 		return DataPoint(datatype.name, global_threads, local_threads, stride, stride_bytes, offset, offset_bytes, elems * datatype.size, elems * datatype.size, bytes_transferred, elapsed, elapsed_std, bytes_transferred / elapsed)
 
 	def _guessStride(self, datatype, elems):
-		# TODO do an intelligent guess
-		return elems
+		if self.optimizer:
+			return self.optimizer.recommendStride(datatype, elems)
+		else:
+			return elems

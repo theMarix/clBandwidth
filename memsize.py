@@ -25,6 +25,7 @@ from progress import ProgressBar
 from runner import *
 from datatypes import getType
 import data
+import optimizer
 
 if __name__ == '__main__':
 	parser = optparse.OptionParser(description='Benchmark global memory bandwidth for multiple memory sizes')
@@ -37,12 +38,15 @@ if __name__ == '__main__':
 	parser.add_option('--soa', default=False, action='store_true', help='Use SOA storage')
 	parser.add_option('-o', '--output-file', help='File to write the results to')
 	parser.add_option('-p', '--progress', default=False, action='store_true', help='Show a progress indicator')
+	parser.add_option('--optimizer', help='The optimizer to use')
 
 	(args, rem) = parser.parse_args()
 
 	runner_args = {}
 	if args.device != None:
 		runner_args['device'] = args.device
+	if args.optimizer != None:
+		runner_args['optimizer'] = optimizer.getOptimizer(args.optimizer)
 
 	runner = Runner(**runner_args)
 
