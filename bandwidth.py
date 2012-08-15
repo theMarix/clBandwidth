@@ -24,6 +24,7 @@ import optparse
 from runner import *
 from datatypes import getType
 import data
+import optimizer
 
 if __name__ == '__main__':
 	parser = optparse.OptionParser(description='Benchmark global memory bandwidth')
@@ -34,6 +35,7 @@ if __name__ == '__main__':
 	parser.add_option('--soa', default=False, action='store_true', help='Use SOA storage')
 	parser.add_option('--offset', default=0, type=int, metavar='N', help='Offset (in elements) to use for array vs. buffer')
 	parser.add_option('-o', '--output-file', help='File to write the results to')
+	parser.add_option('--optimizer', help='The optimizer to use')
 
 	(args, rem) = parser.parse_args()
 
@@ -42,6 +44,8 @@ if __name__ == '__main__':
 		runner_args['device'] = args.device
 	if args.mem_size != None:
 		runner_args['default_mem_size'] = args.mem_size
+	if args.optimizer != None:
+		runner_args['optimizer'] = optimizer.getOptimizer(args.optimizer)
 
 	runner = Runner(**runner_args)
 

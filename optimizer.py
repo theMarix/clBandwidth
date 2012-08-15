@@ -24,10 +24,37 @@ def getOptimizer(name):
 	""" Get the optimizer with the given name. """
 	return _optimizers[name]
 
-class CypressOptimizer(object):
+
+class Optimizer(object):
+	""" A generic optimizer. Should not be used directly. """
+
+	def __init__(self):
+		# The maximum number of bytes to be added when recommending a stride
+		self.MAX_ADD_STRIDE = 16 * 1024
+
+	def recommendStride(self, datatype, elems):
+		""" Recommend a stride for the given number of elements that will allow high performance.
+
+		    Returns the recommended stride in elements. """
+
+		if not isinstance(datatype, Struct):
+			raise Exception('Stride can only be calculated for struct types')
+
+		scalar_bytes = datatype.scalar.size
+
+		# stride cannot be smaller than the number of elements
+		for stride in range(elems, elems + self.MAX_ADD_STRIDE / scalar_bytes):
+			if self.getStrideBadness(datatype, stride) == 0:
+				return stride
+
+		raise Exception('Failed to find a proper stride for {1} elements of type {0}'.format(datatype, elems))
+
+
+class CypressOptimizer(Optimizer):
 	""" An optimizers for Cypress GPUs """
 
 	def __init__(self):
+		super(CypressOptimizer, self).__init__()
 		self.CRITICAL_STRIDE = 16 * 1024
 		self.CRITICAL_STRIDE_RANGE = 768
 		self.OPTIMUM_OFFSET = 256
@@ -55,18 +82,22 @@ class CypressOptimizer(object):
 
 		return badness
 
+
 class CaymanOptimizer(CypressOptimizer):
 	""" An optimizer for Cayman GPUs """
 
 	def __init__(self):
+		super(CaymanOptimizer, self).__init__()
 		self.CRITICAL_STRIDE = 32 * 1024
 		self.CRITICAL_STRIDE_RANGE = 768
 		self.OPTIMUM_OFFSET = 256
 
-class TahitiOptimizer(object):
+
+class TahitiOptimizer(Optimizer):
 	""" An optimizer for Tahiti GPUs """
 
 	def __init__(self):
+		super(TahitiOptimizer, self).__init__()
 		self.OPTIMUM_OFFSET = 512
 
 	def getAlignmentBadness(self, offset):
@@ -83,10 +114,11 @@ class TahitiOptimizer(object):
 		# we don't know any fancy rules for the Tahiti GPUs, so just return the alignment value
 		return badness
 
-class NVIDIAOptimizer(object):
+class NVIDIAOptimizer(Optimizer):
 	""" An optimizer for Tahiti GPUs """
 
 	def __init__(self):
+		super(NVIDIAOptimizer, self).__init__()
 		self.OPTIMUM_OFFSET = 256
 
 	def getAlignmentBadness(self, offset):
