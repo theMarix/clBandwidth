@@ -44,7 +44,7 @@ class Optimizer(object):
 
 		# stride cannot be smaller than the number of elements
 		for stride in range(elems, elems + self.MAX_ADD_STRIDE / scalar_bytes):
-			if self.getStrideBadness(datatype, stride) == 0:
+			if self.getStrideBadness(datatype, stride * scalar_bytes) == 0:
 				return stride
 
 		raise Exception('Failed to find a proper stride for {1} elements of type {0}'.format(datatype, elems))
