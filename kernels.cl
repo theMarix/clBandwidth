@@ -54,6 +54,7 @@ for(size_t i = i_start; i < i_end && i < NUM_ELEMS; ++i)
 for(size_t i = get_global_id(0); i < NUM_ELEMS; i += get_global_size(0))
 #endif
 
+#ifndef ENABLE_STRUCT
 /*
  * Scalar kernels
  */
@@ -64,10 +65,11 @@ __kernel void copyScalar(__global WRITEABLE(SCALAR, out), __global READONLY(SCAL
 	}
 };
 
+#else
+
 /*
  * Struct kernels
  */
-#ifdef ENABLE_STRUCT
 
 __kernel void copySOA(__global WRITEABLE(SCALAR, out), __global READONLY(SCALAR, in))
 {
