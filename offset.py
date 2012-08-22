@@ -36,6 +36,7 @@ if __name__ == '__main__':
 	parser.add_option('-t', '--type', default='float', metavar='TYPE', help='The basic scalar type to use')
 	parser.add_option('-e', '--struct-elems', type=int, metavar='N', help='Use a struct of N elems of the basic scalar type')
 	parser.add_option('--soa', default=False, action='store_true', help='Use SOA storage')
+	parser.add_option('--n-soa-buffers', default=False, action='store_true', help='Use distinct buffers for each element fo the struct')
 	parser.add_option('-o', '--output-file', help='File to write the results to')
 	parser.add_option('-p', '--progress', default=False, action='store_true', help='Show a progress indicator')
 
@@ -46,6 +47,8 @@ if __name__ == '__main__':
 		runner_args['device'] = args.device
 	if args.mem_size:
 		runner_args['default_mem_size'] = args.mem_size
+	if args.n_soa_buffers:
+		runner_args['n_soa_buffers'] = True
 
 	runner = Runner(**runner_args)
 
