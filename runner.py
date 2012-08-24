@@ -74,6 +74,14 @@ class Runner:
 		extensions = self.device.extensions
 		return 'cl_khr_fp64' in extensions or 'cl_amd_fp64' in extensions
 
+	def _recommend_alignment(self, type):
+		good_alignment = 1
+		alignment = 2
+		while type.size % alignment == 0:
+			good_alignment = alignment
+			alignment *= 2
+		return good_alignment
+
 	def createKernel(self, datatype, num_elems, plain_pointers = False, SOA_stride = 0, offset = 0):
 		generated_source = '''
 #ifdef PLAIN_POINTERS
@@ -112,13 +120,12 @@ class Runner:
 
 		if isinstance(datatype, Struct):
 			scalar_name = datatype.scalar.name
-			# TODO allign type
 			generated_source += '''
 			typedef struct Struct_s {
 			'''
 			for i in range(datatype.elems):
 				generated_source += '{0} e{1};\n'.format(scalar_name, i)
-			generated_source += '} Struct_t;\n'
+			generated_source += '} Struct_t __attribute__ ((aligned (' + str(self._recommend_alignment(datatype)) + ')));\n'
 
 			if SOA_stride:
 				generated_source += '#define SCALAR {0}\n'.format(scalar_name)
