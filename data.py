@@ -29,10 +29,21 @@ DataPoint = namedtuple('DataPoint', 'typename global_threads local_threads strid
 
 def dump(filename, data):
 	writer = csv.writer(open(filename, 'wb'), quoting=csv.QUOTE_MINIMAL)
+	writer.writerow(['clBandwidth data file', 'file version', 2])
 	writer.writerow(data[0]._fields)
 	writer.writerows(data)
 
 def load(filename):
 	reader = csv.reader(open(filename, 'rb'))
-	reader.next() # skip headers
+	meta = reader.next()
+	if len(meta) < 3 or meta[0] != 'clBandwidth data file' or meta[1] != 'file version':
+		if meta[0] == 'typename':
+			# old data-file
+			# headers are already skipped
+			pass
+		else:
+			raise Exception('File does not seem to be a valid datafile')
+	else:
+		# data format >= version 2
+		reader.next() # skip headers
 	return map(DataPoint._make, reader)
