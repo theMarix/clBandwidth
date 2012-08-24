@@ -287,9 +287,9 @@ class Runner:
 
 		# throw away warmup runs
 		events = events[WARMUP_RUNS:]
-		event_times = map(lambda event: (event.profile.end - event.profile.start), events)
+		event_times = [(event.profile.end - event.profile.start) for event in events]
 		elapsed = np.mean(event_times)
-		elapsed_std = np.std(event_times)
+		elapsed_std = np.std(event_times, ddof=1) / math.sqrt(len(event_times)) # standard error of mean
 
 		if isinstance(datatype, Struct):
 			stride_bytes = stride * datatype.scalar.size

@@ -29,7 +29,7 @@ DataPoint = namedtuple('DataPoint', 'typename global_threads local_threads strid
 
 def dump(filename, data):
 	writer = csv.writer(open(filename, 'wb'), quoting=csv.QUOTE_MINIMAL)
-	writer.writerow(['clBandwidth data file', 'file version', 2])
+	writer.writerow(['clBandwidth data file', 'file version', 3])
 	writer.writerow(data[0]._fields)
 	writer.writerows(data)
 
@@ -40,10 +40,16 @@ def load(filename):
 		if meta[0] == 'typename':
 			# old data-file
 			# headers are already skipped
+			data_ver = 1
 			pass
 		else:
 			raise Exception('File does not seem to be a valid datafile')
 	else:
+		data_ver = int(meta[2])
 		# data format >= version 2
 		reader.next() # skip headers
+
+	if data_ver < 3:
+		print 'WARNING: Old data file - errors are variance of distribution, not standard error of mean.'
+
 	return map(DataPoint._make, reader)
