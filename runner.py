@@ -211,7 +211,9 @@ class Runner:
 			return prg.copyScalar;
 
 	def benchmark(self, datatype, mem_size = None, global_threads = None, local_threads = None, stride = 0, offset = 0):
-		BENCH_RUNS = 10
+		BENCH_RUNS_BOCK_SIZE = 5 # this many benchmarks runs will be done en-block
+		MAX_BENCH_DURATION = 1. # in seconds, if maximum benchmark duration is reached stop the benchmark no matter what the error
+		TARGET_ERROR = 1 # try to get the std error of the mean below that percentage
 		WARMUP_RUNS = 2
 
 		if not global_threads:
@@ -252,28 +254,52 @@ class Runner:
 
 		kernel = self.createKernel(datatype, elems, SOA_stride = stride, offset = offset)
 
-		events = []
-		for i in range(BENCH_RUNS + WARMUP_RUNS):
-			# Kernel launching logic
-			# This was supposed to be in an own function, but when you return the events
-			# you cannot call the function more than once for some unkown reason
-			if stride == -1:
-				bufs = out_bufs + in_bufs
-			else:
-				bufs = [out_buf, in_buf]
-			event = kernel(self.queue, (global_threads,), (local_threads,), *bufs)
-			events.append(event)
-			if self.alternate_buffers:
-				if stride == -1:
-					tmp = out_bufs
-					out_bufs = in_bufs
-					in_bufs = tmp
-				else:
-					tmp = out_buf
-					out_buf = in_buf
-					in_buf = tmp
+		event_times = []
+		data_point = None
 
-		cl.wait_for_events(events)
+		while not data_point:
+
+			events = []
+			for i in range(BENCH_RUNS_BOCK_SIZE + WARMUP_RUNS):
+				# Kernel launching logic
+				# This was supposed to be in an own function, but when you return the events
+				# you cannot call the function more than once for some unkown reason
+				if stride == -1:
+					bufs = out_bufs + in_bufs
+				else:
+					bufs = [out_buf, in_buf]
+				event = kernel(self.queue, (global_threads,), (local_threads,), *bufs)
+				events.append(event)
+				if self.alternate_buffers:
+					if stride == -1:
+						tmp = out_bufs
+						out_bufs = in_bufs
+						in_bufs = tmp
+					else:
+						tmp = out_buf
+						out_buf = in_buf
+						in_buf = tmp
+
+			cl.wait_for_events(events)
+
+			# throw away warmup runs
+			events = events[WARMUP_RUNS:]
+			WARMUP_RUNS = 0 # we only need to warm up in first iteration
+			event_times = event_times + [(event.profile.end - event.profile.start) for event in events]
+			elapsed = np.mean(event_times)
+			elapsed_std = np.std(event_times, ddof=1) / math.sqrt(len(event_times)) # standard error of mean
+
+			if isinstance(datatype, Struct):
+				stride_bytes = stride * datatype.scalar.size
+				offset_bytes = offset * datatype.scalar.size
+			else:
+				stride_bytes = stride * datatype.size
+				offset_bytes = offset * datatype.size
+
+			error_perc = elapsed_std / elapsed * 100
+			duration_s = np.sum(event_times) / 10**9
+			if error_perc < TARGET_ERROR or duration_s >= MAX_BENCH_DURATION:
+				data_point = DataPoint(datatype.name, global_threads, local_threads, stride, stride_bytes, offset, offset_bytes, elems * datatype.size, elems * datatype.size, bytes_transferred, elapsed, elapsed_std, bytes_transferred / elapsed)
 
 		# clean up memory
 		if stride == -1:
@@ -285,20 +311,10 @@ class Runner:
 			in_buf.release()
 			out_buf.release()
 
-		# throw away warmup runs
-		events = events[WARMUP_RUNS:]
-		event_times = [(event.profile.end - event.profile.start) for event in events]
-		elapsed = np.mean(event_times)
-		elapsed_std = np.std(event_times, ddof=1) / math.sqrt(len(event_times)) # standard error of mean
+		return data_point
 
-		if isinstance(datatype, Struct):
-			stride_bytes = stride * datatype.scalar.size
-			offset_bytes = offset * datatype.scalar.size
-		else:
-			stride_bytes = stride * datatype.size
-			offset_bytes = offset * datatype.size
 
-		return DataPoint(datatype.name, global_threads, local_threads, stride, stride_bytes, offset, offset_bytes, elems * datatype.size, elems * datatype.size, bytes_transferred, elapsed, elapsed_std, bytes_transferred / elapsed)
+
 
 	def _guessStride(self, datatype, elems):
 		if self.optimizer:
