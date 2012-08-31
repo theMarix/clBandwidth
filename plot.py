@@ -61,7 +61,7 @@ if __name__ == '__main__':
 	for dataset, label, marker in zip(datasets, args.labels, MARKERS):
 		xvals, yvals, errs = zip(*[(int(getattr(val, args.xaxis)) / args.xscale, float(val.bandwidth), float(val.bandwidth) * float(val.time_std) / float(val.time)) for val in dataset])
 		if args.plot_errors:
-			plt.errorbar(xvals, yvals, yerr=errs, marker=marker, label=label)
+			plt.errorbar(xvals, yvals, yerr=errs, marker=marker, label=label, linestyle='')
 		else:
 			plt.plot(xvals, yvals, marker, label=label)
 	plt.ylim(ymin=0)
