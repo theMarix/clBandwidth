@@ -221,7 +221,7 @@ class Runner:
 		BENCH_RUNS_BLOCK_SIZE = 5 # this many benchmarks runs will be done en-block
 		MAX_BENCH_DURATION = 1. # in seconds, if maximum benchmark duration is reached stop the benchmark no matter what the error
 		TARGET_ERROR = 1 # try to get the std error of the mean below that percentage
-		WARMUP_TIME = .25 # warmup time in s
+		WARMUP_TIME = .05 # warmup time in s
 		WARMUP_RUN_BLOCK_SIZE = 1
 
 		if not global_threads:
@@ -294,15 +294,16 @@ class Runner:
 
 			# throw away warmup runs
 			event_times = event_times + [(event.profile.end - event.profile.start) for event in events]
-			elapsed = np.mean(event_times)
+			duration_s = np.sum(event_times) / 10e9
 			if warmup:
-				if elapsed >= WARMUP_TIME:
+				if duration_s >= WARMUP_TIME:
 					# reset and start actual measurement
 					event_times = []
 					warmup = False
 				else:
 					pass # continue warming up
 			else:
+				elapsed = np.mean(event_times)
 				elapsed_std = np.std(event_times, ddof=1) / math.sqrt(len(event_times)) # standard error of mean
 
 				if isinstance(datatype, Struct):
@@ -313,7 +314,6 @@ class Runner:
 					offset_bytes = offset * datatype.size
 
 				error_perc = elapsed_std / elapsed * 100
-				duration_s = np.sum(event_times) / 10**9
 				if error_perc < TARGET_ERROR or duration_s >= MAX_BENCH_DURATION:
 					data_point = DataPoint(datatype.name, global_threads, local_threads, stride, stride_bytes, offset, offset_bytes, elems * datatype.size, elems * datatype.size, bytes_transferred, elapsed, elapsed_std, bytes_transferred / elapsed)
 
