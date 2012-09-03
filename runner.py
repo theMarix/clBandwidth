@@ -218,10 +218,11 @@ class Runner:
 			return prg.copyScalar;
 
 	def benchmark(self, datatype, mem_size = None, global_threads = None, local_threads = None, stride = 0, offset = 0):
-		BENCH_RUNS_BOCK_SIZE = 5 # this many benchmarks runs will be done en-block
+		BENCH_RUNS_BLOCK_SIZE = 5 # this many benchmarks runs will be done en-block
 		MAX_BENCH_DURATION = 1. # in seconds, if maximum benchmark duration is reached stop the benchmark no matter what the error
 		TARGET_ERROR = 1 # try to get the std error of the mean below that percentage
-		WARMUP_RUNS = 2
+		WARMUP_TIME = .25 # warmup time in s
+		WARMUP_RUN_BLOCK_SIZE = 1
 
 		if not global_threads:
 			global_threads = self.global_threads
@@ -264,10 +265,12 @@ class Runner:
 		event_times = []
 		data_point = None
 
+		warmup = True
+
 		while not data_point:
 
 			events = []
-			for i in range(BENCH_RUNS_BOCK_SIZE + WARMUP_RUNS):
+			for i in range(WARMUP_RUN_BLOCK_SIZE if warmup else BENCH_RUNS_BLOCK_SIZE):
 				# Kernel launching logic
 				# This was supposed to be in an own function, but when you return the events
 				# you cannot call the function more than once for some unkown reason
@@ -290,23 +293,29 @@ class Runner:
 			cl.wait_for_events(events)
 
 			# throw away warmup runs
-			events = events[WARMUP_RUNS:]
-			WARMUP_RUNS = 0 # we only need to warm up in first iteration
 			event_times = event_times + [(event.profile.end - event.profile.start) for event in events]
 			elapsed = np.mean(event_times)
-			elapsed_std = np.std(event_times, ddof=1) / math.sqrt(len(event_times)) # standard error of mean
-
-			if isinstance(datatype, Struct):
-				stride_bytes = stride * datatype.scalar.size
-				offset_bytes = offset * datatype.scalar.size
+			if warmup:
+				if elapsed >= WARMUP_TIME:
+					# reset and start actual measurement
+					event_times = []
+					warmup = False
+				else:
+					pass # continue warming up
 			else:
-				stride_bytes = stride * datatype.size
-				offset_bytes = offset * datatype.size
+				elapsed_std = np.std(event_times, ddof=1) / math.sqrt(len(event_times)) # standard error of mean
 
-			error_perc = elapsed_std / elapsed * 100
-			duration_s = np.sum(event_times) / 10**9
-			if error_perc < TARGET_ERROR or duration_s >= MAX_BENCH_DURATION:
-				data_point = DataPoint(datatype.name, global_threads, local_threads, stride, stride_bytes, offset, offset_bytes, elems * datatype.size, elems * datatype.size, bytes_transferred, elapsed, elapsed_std, bytes_transferred / elapsed)
+				if isinstance(datatype, Struct):
+					stride_bytes = stride * datatype.scalar.size
+					offset_bytes = offset * datatype.scalar.size
+				else:
+					stride_bytes = stride * datatype.size
+					offset_bytes = offset * datatype.size
+
+				error_perc = elapsed_std / elapsed * 100
+				duration_s = np.sum(event_times) / 10**9
+				if error_perc < TARGET_ERROR or duration_s >= MAX_BENCH_DURATION:
+					data_point = DataPoint(datatype.name, global_threads, local_threads, stride, stride_bytes, offset, offset_bytes, elems * datatype.size, elems * datatype.size, bytes_transferred, elapsed, elapsed_std, bytes_transferred / elapsed)
 
 		# clean up memory
 		if stride == -1:
