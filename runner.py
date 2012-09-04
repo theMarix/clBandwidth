@@ -221,7 +221,7 @@ class Runner:
 		BENCH_RUNS_BLOCK_SIZE = 5 # this many benchmarks runs will be done en-block
 		MAX_BENCH_DURATION = 1. # in seconds, if maximum benchmark duration is reached stop the benchmark no matter what the error
 		TARGET_ERROR = 1 # try to get the std error of the mean below that percentage
-		WARMUP_TIME = .05 # warmup time in s
+		WARMUP_TIME = .00 # warmup time in s
 		WARMUP_RUN_BLOCK_SIZE = 1
 
 		if not global_threads:
@@ -290,7 +290,8 @@ class Runner:
 						out_buf = in_buf
 						in_buf = tmp
 
-			cl.wait_for_events(events)
+			if len(events) > 0:
+				cl.wait_for_events(events)
 
 			# throw away warmup runs
 			event_times = event_times + [(event.profile.end - event.profile.start) for event in events]
