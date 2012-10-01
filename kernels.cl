@@ -54,6 +54,7 @@ for(size_t i = i_start; i < i_end && i < NUM_ELEMS; ++i)
 for(size_t i = get_global_id(0); i < NUM_ELEMS; i += get_global_size(0))
 #endif
 
+#ifndef ENABLE_STRUCT
 /*
  * Scalar kernels
  */
@@ -62,12 +63,15 @@ __kernel void copyScalar(__global WRITEABLE(SCALAR, out), __global READONLY(SCAL
 	PARALLEL_FOR(i) {
 		out[OFFSET + i] = in[OFFSET + i];
 	}
-};
+}
+
+#else /* ENABLE_STRUCT */
 
 /*
  * Struct kernels
  */
-#ifdef ENABLE_STRUCT
+
+#ifndef N_SOA_BUFFERS
 
 __kernel void copySOA(__global WRITEABLE(SCALAR, out), __global READONLY(SCALAR, in))
 {
@@ -75,5 +79,8 @@ __kernel void copySOA(__global WRITEABLE(SCALAR, out), __global READONLY(SCALAR,
 		Struct_t tmp = peekStruct(in, i);
 		pokeStruct(out, i, tmp);
 	}
-};
-#endif
+}
+
+#endif /* N_SOA_BUFFERS */
+
+#endif /* ENABLE_STRUCT */

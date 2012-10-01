@@ -36,6 +36,7 @@ if __name__ == '__main__':
 	parser.add_argument('--xscale', type=float, default=1, help='Rescale x axis by the given value')
 	parser.add_argument('--title', help='Title to add to the plot')
 	parser.add_argument('--output', metavar='FILE', help='Plot to the given file instead of the screen')
+	parser.add_argument('--plot-errors', default=False, action='store_true', help='Add errorbars to the plot.')
 
 	args = parser.parse_args()
 
@@ -58,8 +59,11 @@ if __name__ == '__main__':
 	# create the plot
 	fig = plt.figure(figsize=(10,4))
 	for dataset, label, marker in zip(datasets, args.labels, MARKERS):
-		xvals, yvals = zip(*[(int(getattr(val, args.xaxis)) / args.xscale, val.bandwidth) for val in dataset])
-		plt.plot(xvals, yvals, marker, label=label)
+		xvals, yvals, errs = zip(*[(int(getattr(val, args.xaxis)) / args.xscale, float(val.bandwidth), float(val.bandwidth) * float(val.time_std) / float(val.time)) for val in dataset])
+		if args.plot_errors:
+			plt.errorbar(xvals, yvals, yerr=errs, marker=marker, label=label, linestyle='')
+		else:
+			plt.plot(xvals, yvals, marker, label=label)
 	plt.ylim(ymin=0)
 
 	if args.title:

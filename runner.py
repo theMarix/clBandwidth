@@ -22,6 +22,7 @@ import pyopencl as cl
 import numpy as np
 from collections import namedtuple
 import os.path as path
+import math
 
 from datatypes import *
 from data import *
@@ -31,7 +32,7 @@ LOCAL_THREADS = 128
 
 class Runner:
 
-	def __init__(self, device = None, local_threads = None, global_threads = None, default_mem_size = DEFAULT_MEM_SIZE, alternate_buffers = True, optimizer = None):
+	def __init__(self, device = None, local_threads = None, global_threads = None, default_mem_size = DEFAULT_MEM_SIZE, alternate_buffers = True, optimizer = None, n_soa_buffers = False):
 		if device != None:
 			platforms = cl.get_platforms()
 			if len(platforms) > 1:
@@ -65,12 +66,21 @@ class Runner:
 		self.default_mem_size = default_mem_size
 
 		self.alternate_buffers = alternate_buffers
+		self.n_soa_buffers = n_soa_buffers
 
 		self.optimizer = optimizer
 
 	def hasDoublePrecisionSupport(self):
 		extensions = self.device.extensions
 		return 'cl_khr_fp64' in extensions or 'cl_amd_fp64' in extensions
+
+	def _recommend_alignment(self, type):
+		good_alignment = 1
+		alignment = 2
+		while type.size % alignment == 0:
+			good_alignment = alignment
+			alignment *= 2
+		return good_alignment
 
 	def createKernel(self, datatype, num_elems, plain_pointers = False, SOA_stride = 0, offset = 0):
 		generated_source = ''
@@ -114,29 +124,71 @@ class Runner:
 
 		if isinstance(datatype, Struct):
 			scalar_name = datatype.scalar.name
-			# TODO allign type
 			generated_source += '''
 			typedef struct Struct_s {
 			'''
 			for i in range(datatype.elems):
 				generated_source += '{0} e{1};\n'.format(scalar_name, i)
-			generated_source += '} Struct_t;\n'
+			generated_source += '} Struct_t __attribute__ ((aligned (' + str(self._recommend_alignment(datatype)) + ')));\n'
 
 			if SOA_stride:
 				generated_source += '#define SCALAR {0}\n'.format(scalar_name)
 				generated_source += '#define ENABLE_STRUCT\n'
 				generated_source += '#define SOA_STRIDE {0}\n'.format(SOA_stride)
-				generated_source += 'Struct_t peekStruct(__global READONLY(SCALAR, in), const size_t idx);\n'
-				generated_source += 'void pokeStruct(__global WRITEABLE(SCALAR, out), const size_t idx, const Struct_t val);\n'
-				generated_source += 'Struct_t peekStruct(__global READONLY(SCALAR, in), const size_t idx) { return (Struct_t) {'
-				for i in range(datatype.elems - 1):
-					generated_source += 'in[idx + OFFSET + SOA_STRIDE * {0}], '.format(i)
-				generated_source += 'in[idx + OFFSET + SOA_STRIDE * {0}]'.format(datatype.elems - 1)
-				generated_source += '}; };\n'
-				generated_source += 'void pokeStruct(__global WRITEABLE(SCALAR, out), const size_t idx, const Struct_t val) {'
-				for i in range(datatype.elems):
-					generated_source += 'out[idx + OFFSET + SOA_STRIDE * {0}] = val.e{0};'.format(i)
-				generated_source += '};\n'
+				if self.n_soa_buffers:
+					peek_func_def = 'Struct_t peekStruct('
+					for i in range(datatype.elems):
+						peek_func_def += '__global READONLY(SCALAR, in{0}), '.format(i)
+					peek_func_def += 'const size_t idx)'
+					poke_func_def = 'void pokeStruct('
+					for i in range(datatype.elems):
+						poke_func_def += '__global WRITEABLE(SCALAR, out{0}), '.format(i)
+					poke_func_def += 'const size_t idx, const Struct_t val)'
+
+					generated_source += '#define N_SOA_BUFFERS {0}\n'.format(datatype.elems)
+					generated_source += '{0};\n'.format(peek_func_def)
+					generated_source += '{0};\n'.format(poke_func_def)
+					generated_source += peek_func_def + ' { return (Struct_t) {'
+					for i in range(datatype.elems - 1):
+						generated_source += 'in{0}[idx + OFFSET], '.format(i)
+					generated_source += 'in{0}[idx]'.format(datatype.elems - 1)
+					generated_source += '}; }\n'
+
+					generated_source += poke_func_def + ' {\n'
+					for i in range(datatype.elems):
+						generated_source += 'out{0}[idx + OFFSET] = val.e{0};\n'.format(i)
+					generated_source += '}\n'
+
+					n_soa_buffers_kernel = '\n__kernel void copySOA('
+					for i in range(datatype.elems):
+						n_soa_buffers_kernel += '__global WRITEABLE(SCALAR, out{0}), '.format(i)
+					for i in range(datatype.elems - 1):
+						n_soa_buffers_kernel += '__global READONLY(SCALAR, in{0}), '.format(i)
+					n_soa_buffers_kernel += '__global READONLY(SCALAR, in{0}))\n'.format(datatype.elems - 1)
+					n_soa_buffers_kernel += '{\n'
+					n_soa_buffers_kernel += '	PARALLEL_FOR(i) {'
+					n_soa_buffers_kernel += '		Struct_t tmp = peekStruct('
+					for i in range(datatype.elems):
+						n_soa_buffers_kernel += 'in{0}, '.format(i)
+					n_soa_buffers_kernel += 'i);\n'
+					n_soa_buffers_kernel += 		'pokeStruct('
+					for i in range(datatype.elems):
+						n_soa_buffers_kernel += 'out{0}, '.format(i)
+					n_soa_buffers_kernel += 'i, tmp);\n'
+					n_soa_buffers_kernel += '	}'
+					n_soa_buffers_kernel += '}'
+				else:
+					generated_source += 'Struct_t peekStruct(__global READONLY(SCALAR, in), const size_t idx);\n'
+					generated_source += 'void pokeStruct(__global WRITEABLE(SCALAR, out), const size_t idx, const Struct_t val);\n'
+					generated_source += 'Struct_t peekStruct(__global READONLY(SCALAR, in), const size_t idx) { return (Struct_t) {'
+					for i in range(datatype.elems - 1):
+						generated_source += 'in[idx + OFFSET + SOA_STRIDE * {0}], '.format(i)
+					generated_source += 'in[idx + OFFSET + SOA_STRIDE * {0}]'.format(datatype.elems - 1)
+					generated_source += '}; }\n'
+					generated_source += 'void pokeStruct(__global WRITEABLE(SCALAR, out), const size_t idx, const Struct_t val) {'
+					for i in range(datatype.elems):
+						generated_source += 'out[idx + OFFSET + SOA_STRIDE * {0}] = val.e{0};'.format(i)
+					generated_source += '}\n'
 			else:
 				scalar_name = 'Struct_t'
 				generated_source += '#define SCALAR {0}\n'.format(scalar_name)
@@ -158,6 +210,9 @@ class Runner:
 		base_folder = path.dirname(__file__)
 		f = open(path.join(base_folder, 'kernels.cl'), 'r')
 		fstr = generated_source + "".join(f.readlines())
+		if SOA_stride and self.n_soa_buffers:
+			fstr += n_soa_buffers_kernel
+
 		prg = cl.Program(self.ctx, fstr).build()
 		if SOA_stride:
 			return prg.copySOA
@@ -165,8 +220,11 @@ class Runner:
 			return prg.copyScalar;
 
 	def benchmark(self, datatype, mem_size = None, global_threads = None, local_threads = None, stride = 0, offset = 0, plain_pointers = False):
-		BENCH_RUNS = 10
-		WARMUP_RUNS = 2
+		BENCH_RUNS_BLOCK_SIZE = 5 # this many benchmarks runs will be done en-block
+		MAX_BENCH_DURATION = 1. # in seconds, if maximum benchmark duration is reached stop the benchmark no matter what the error
+		TARGET_ERROR = 1 # try to get the std error of the mean below that percentage
+		WARMUP_TIME = .00 # warmup time in s
+		WARMUP_RUN_BLOCK_SIZE = 1
 
 		if not global_threads:
 			global_threads = self.global_threads
@@ -178,54 +236,104 @@ class Runner:
 		elems = mem_size / datatype.size;
 		bytes_transferred = elems * datatype.size * 2
 
-		if stride < 0:
-			stride = self._guessStride(datatype, elems)
 		if stride:
-			required_buf_size = (offset + stride) * datatype.size
+			if self.n_soa_buffers: # ignore actual stride value
+				required_buf_size = int(math.ceil(mem_size / float(datatype.elems))) + datatype.scalar.size * offset
+				stride = -1
+			else:
+				if stride < 0:
+					stride = self._guessStride(datatype, elems)
+				required_buf_size = (offset + stride) * datatype.size
 		else:
 			required_buf_size = mem_size + datatype.size * offset
 
 		if self.alternate_buffers:
-			in_buf = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, required_buf_size)
-			out_buf = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, required_buf_size)
+			if stride == -1:
+				in_bufs = [ cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, required_buf_size) for foo in range(datatype.elems) ]
+				out_bufs = [ cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, required_buf_size) for foo in range(datatype.elems) ]
+			else:
+				in_buf = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, required_buf_size)
+				out_buf = cl.Buffer(self.ctx, cl.mem_flags.READ_WRITE, required_buf_size)
 		else:
-			in_buf = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY, required_buf_size)
-			out_buf = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, required_buf_size)
+			if stride == -1:
+				in_bufs = [ cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY, required_buf_size) for foo in range(datatype.elems) ]
+				out_bufs = [ cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, required_buf_size) for foo in range(datatype.elems) ]
+			else:
+				in_buf = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY, required_buf_size)
+				out_buf = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, required_buf_size)
 
 		kernel = self.createKernel(datatype, elems, SOA_stride = stride, offset = offset, plain_pointers = plain_pointers)
 
-		events = []
-		for i in range(BENCH_RUNS + WARMUP_RUNS):
-			# Kernel launching logic
-			# This was supposed to be in an own function, but when you return the events
-			# you cannot call the function more than once for some unkown reason
-			event = kernel(self.queue, (global_threads,), (local_threads,), out_buf, in_buf)
-			events.append(event)
-			if self.alternate_buffers:
-				tmp = out_buf
-				out_buf = in_buf
-				in_buf = tmp
+		event_times = []
+		data_point = None
 
-		cl.wait_for_events(events)
+		warmup = True
+
+		while not data_point:
+
+			events = []
+			for i in range(WARMUP_RUN_BLOCK_SIZE if warmup else BENCH_RUNS_BLOCK_SIZE):
+				# Kernel launching logic
+				# This was supposed to be in an own function, but when you return the events
+				# you cannot call the function more than once for some unkown reason
+				if stride == -1:
+					bufs = out_bufs + in_bufs
+				else:
+					bufs = [out_buf, in_buf]
+				event = kernel(self.queue, (global_threads,), (local_threads,), *bufs)
+				events.append(event)
+				if self.alternate_buffers:
+					if stride == -1:
+						tmp = out_bufs
+						out_bufs = in_bufs
+						in_bufs = tmp
+					else:
+						tmp = out_buf
+						out_buf = in_buf
+						in_buf = tmp
+
+			if len(events) > 0:
+				cl.wait_for_events(events)
+
+			# throw away warmup runs
+			event_times = event_times + [(event.profile.end - event.profile.start) for event in events]
+			duration_s = np.sum(event_times) / 10e9
+			if warmup:
+				if duration_s >= WARMUP_TIME:
+					# reset and start actual measurement
+					event_times = []
+					warmup = False
+				else:
+					pass # continue warming up
+			else:
+				elapsed = np.mean(event_times)
+				elapsed_std = np.std(event_times, ddof=1) / math.sqrt(len(event_times)) # standard error of mean
+
+				if isinstance(datatype, Struct):
+					stride_bytes = stride * datatype.scalar.size
+					offset_bytes = offset * datatype.scalar.size
+				else:
+					stride_bytes = stride * datatype.size
+					offset_bytes = offset * datatype.size
+
+				error_perc = elapsed_std / elapsed * 100
+				if error_perc < TARGET_ERROR or duration_s >= MAX_BENCH_DURATION:
+					data_point = DataPoint(datatype.name, global_threads, local_threads, stride, stride_bytes, offset, offset_bytes, elems * datatype.size, elems * datatype.size, bytes_transferred, elapsed, elapsed_std, bytes_transferred / elapsed)
 
 		# clean up memory
-		in_buf.release()
-		out_buf.release()
-
-		# throw away warmup runs
-		events = events[WARMUP_RUNS:]
-		event_times = map(lambda event: (event.profile.end - event.profile.start), events)
-		elapsed = np.mean(event_times)
-		elapsed_std = np.std(event_times)
-
-		if isinstance(datatype, Struct):
-			stride_bytes = stride * datatype.scalar.size
-			offset_bytes = offset * datatype.scalar.size
+		if stride == -1:
+			for buf in in_bufs:
+				buf.release()
+			for buf in out_bufs:
+				buf.release()
 		else:
-			stride_bytes = stride * datatype.size
-			offset_bytes = offset * datatype.size
+			in_buf.release()
+			out_buf.release()
 
-		return DataPoint(datatype.name, global_threads, local_threads, stride, stride_bytes, offset, offset_bytes, elems * datatype.size, elems * datatype.size, bytes_transferred, elapsed, elapsed_std, bytes_transferred / elapsed)
+		return data_point
+
+
+
 
 	def _guessStride(self, datatype, elems):
 		if self.optimizer:
