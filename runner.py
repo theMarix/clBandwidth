@@ -82,7 +82,11 @@ class Runner:
 			alignment *= 2
 		return good_alignment
 
-	def createKernel(self, datatype, num_elems, plain_pointers = False, SOA_stride = 0, offset = 0):
+	def local_mem_for_max_groups(self, groups):
+		return (self.device.local_mem_size - 128) / groups # substract a few bytes that might be used for group-id etc.
+
+
+	def createKernel(self, datatype, num_elems, plain_pointers = False, SOA_stride = 0, offset = 0, local_mem_size = 0):
 		generated_source = ''
 
 		if plain_pointers:
@@ -206,6 +210,10 @@ class Runner:
 		if self.device.type == cl.device_type.CPU:
 			generated_source += '#define BLOCKED_LOOP\n'
 
+		if local_mem_size:
+			generated_source += '''
+			#define LOCAL_MEM_SIZE {0}
+			'''.format(local_mem_size / 4);
 
 		base_folder = path.dirname(__file__)
 		f = open(path.join(base_folder, 'kernels.cl'), 'r')
@@ -219,17 +227,20 @@ class Runner:
 		else:
 			return prg.copyScalar;
 
-	def benchmark(self, datatype, mem_size = None, global_threads = None, local_threads = None, stride = 0, offset = 0, plain_pointers = False):
+	def benchmark(self, datatype, mem_size = None, global_threads = None, local_threads = None, stride = 0, offset = 0, plain_pointers = False, max_groups_per_cu = None):
 		BENCH_RUNS_BLOCK_SIZE = 5 # this many benchmarks runs will be done en-block
 		MAX_BENCH_DURATION = 1. # in seconds, if maximum benchmark duration is reached stop the benchmark no matter what the error
 		TARGET_ERROR = 1 # try to get the std error of the mean below that percentage
 		WARMUP_TIME = .00 # warmup time in s
 		WARMUP_RUN_BLOCK_SIZE = 1
 
-		if not global_threads:
-			global_threads = self.global_threads
 		if not local_threads:
 			local_threads = self.local_threads
+		if not global_threads:
+			if max_groups_per_cu:
+				global_threads = local_threads * max_groups_per_cu * self.device.max_compute_units
+			else:
+				global_threads = self.global_threads
 		if not mem_size:
 			mem_size = self.default_mem_size
 
@@ -262,7 +273,9 @@ class Runner:
 				in_buf = cl.Buffer(self.ctx, cl.mem_flags.READ_ONLY, required_buf_size)
 				out_buf = cl.Buffer(self.ctx, cl.mem_flags.WRITE_ONLY, required_buf_size)
 
-		kernel = self.createKernel(datatype, elems, SOA_stride = stride, offset = offset, plain_pointers = plain_pointers)
+		local_mem_size = self.local_mem_for_max_groups(max_groups_per_cu) if max_groups_per_cu else 0
+
+		kernel = self.createKernel(datatype, elems, SOA_stride = stride, offset = offset, plain_pointers = plain_pointers, local_mem_size = local_mem_size)
 
 		event_times = []
 		data_point = None

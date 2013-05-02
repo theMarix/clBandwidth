@@ -35,6 +35,10 @@
  * BLOCKED_LOOP     Have each thread process blocks of indices instead of neighbouring threads
  *                  working neighboring indices.
  * NUM_ELEMS        The number of elements in one array.
+ * LOCAL_MEM_SIZE   The size of the local memory block allocated for each group.
+ *                  If unset no local memory is allcoated.
+ *                  This can be used to limit the maximum number of threads that can be
+ *                  scheduled concurrently.
  *
  * Obviously the struct directives only have to be specified is ENABLE_STRUCT has been defined.
  */
@@ -60,6 +64,9 @@ for(size_t i = get_global_id(0); i < NUM_ELEMS; i += get_global_size(0))
  */
 __kernel void copyScalar(__global WRITEABLE(SCALAR, out), __global READONLY(SCALAR, in))
 {
+#ifdef LOCAL_MEM_SIZE
+	__local float dummy[LOCAL_MEM_SIZE];
+#endif
 	PARALLEL_FOR(i) {
 		out[OFFSET + i] = in[OFFSET + i];
 	}
@@ -75,6 +82,9 @@ __kernel void copyScalar(__global WRITEABLE(SCALAR, out), __global READONLY(SCAL
 
 __kernel void copySOA(__global WRITEABLE(SCALAR, out), __global READONLY(SCALAR, in))
 {
+#ifdef LOCAL_MEM_SIZE
+	__local float dummy[LOCAL_MEM_SIZE];
+#endif
 	PARALLEL_FOR(i) {
 		Struct_t tmp = peekStruct(in, i);
 		pokeStruct(out, i, tmp);
