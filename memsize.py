@@ -40,6 +40,7 @@ if __name__ == '__main__':
 	parser.add_option('-o', '--output-file', help='File to write the results to')
 	parser.add_option('-p', '--progress', default=False, action='store_true', help='Show a progress indicator')
 	parser.add_option('--optimizer', help='The optimizer to use')
+	parser.add_option('--plain-pointers', default=False, action='store_true', help="Dont't hint compiler at cacheability of buffers")
 
 	(args, rem) = parser.parse_args()
 
@@ -64,6 +65,7 @@ if __name__ == '__main__':
 	bench_args = {}
 	if args.soa:
 		bench_args['stride'] = -1
+	bench_args['plain_pointers'] = args.plain_pointers
 
 	progress = ProgressBar(not args.progress)
 	try:
