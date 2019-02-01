@@ -35,16 +35,23 @@ if __name__ == '__main__':
 	parser.add_argument('--max-error', type=float, help='Maximum error of the time measurement in percent')
 	parser.add_argument('--bad-strides', metavar='OPTIMIZER', help='Use the given optimizer to filter out bad strides')
 	parser.add_argument('-o', '--output', metavar='FILE', help='Dump to the given file instead of the screen')
+	parser.add_argument('--invert', action='store_true', default=False, help='Invert the --mod criteria')
 
 	args = parser.parse_args()
 
 	stride_optimizer = optimizer.getOptimizer(args.bad_strides) if args.bad_strides else None
 
+	def check_mod(val):
+		if args.invert:
+			return int(val) % args.mod != 0
+		else:
+			return int(val) % args.mod == 0
+
 	# filter the data
 	dataset = [ val for val in data.load(args.file)
 	                if (args.min == None or float(getattr(val, args.metric)) > args.min)
 	                and (args.max == None or float(getattr(val, args.metric)) < args.max)
-	                and (args.mod == None or int(getattr(val, args.metric)) % args.mod == 0)
+	                and (args.mod == None or check_mod(getattr(val, args.metric)))
 	                and (args.max_error == None or float(val.time_std) / float(val.time) * 100 < args.max_error)
 	                and (stride_optimizer == None or stride_optimizer.getStrideBadness(datatypes.getType(val.typename), int(val.stride_bytes)) == 0)
 	          ]
